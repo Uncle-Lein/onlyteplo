@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { supabase } from "@/lib/supabase";
+import { supabase, ensureAnonymousSession } from "@/lib/supabase";
 
 export default function CreatePage() {
   const [forWhom, setForWhom] = useState<"her" | "him">("her");
@@ -27,22 +27,32 @@ export default function CreatePage() {
 
     setIsLoading(true);
 
+    // Создаем анонимную сессию (если её нет)
+    const session = await ensureAnonymousSession();
+    if (!session) {
+      alert("Ошибка авторизации. Попробуйте позже.");
+      setIsLoading(false);
+      return;
+    }
+
     // Генерируем уникальный ID
     const inviteId = Math.random().toString(36).substring(2, 10);
 
-    // Сохраняем в Supabase
+    // Сохраняем в Supabase с привязкой к создателю
     const { error } = await supabase.from("invites").insert({
       id: inviteId,
       for_whom: forWhom,
       recipient_name: recipientName,
       image: selectedImage,
       custom_text: customText,
+      creator_id: session.user.id, // Привязываем к создателю
     });
 
     setIsLoading(false);
 
     if (error) {
       alert("Ошибка сохранения: " + error.message);
+      console.error("Детали:", error);
       return;
     }
 
