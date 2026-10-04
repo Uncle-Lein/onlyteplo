@@ -27,7 +27,6 @@ export default function CreatePage() {
 
     setIsLoading(true);
 
-    // Создаем анонимную сессию (если её нет)
     const session = await ensureAnonymousSession();
     if (!session) {
       alert("Ошибка авторизации. Попробуйте позже.");
@@ -35,17 +34,15 @@ export default function CreatePage() {
       return;
     }
 
-    // Генерируем уникальный ID
     const inviteId = Math.random().toString(36).substring(2, 10);
 
-    // Сохраняем в Supabase с привязкой к создателю
     const { error } = await supabase.from("invites").insert({
       id: inviteId,
       for_whom: forWhom,
       recipient_name: recipientName,
       image: selectedImage,
       custom_text: customText,
-      creator_id: session.user.id, // Привязываем к создателю
+      creator_id: session.user.id,
     });
 
     setIsLoading(false);
@@ -56,7 +53,6 @@ export default function CreatePage() {
       return;
     }
 
-    // Формируем ссылку
     const link = `${window.location.origin}/i/${inviteId}`;
     setGeneratedLink(link);
   };

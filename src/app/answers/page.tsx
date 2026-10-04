@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { supabase } from "@/lib/supabase";
+import { supabase, ensureAnonymousSession } from "@/lib/supabase";
 
 export default function AnswersPage() {
   const [answers, setAnswers] = useState<any[]>([]);
@@ -10,9 +10,19 @@ export default function AnswersPage() {
 
   useEffect(() => {
     const fetchAnswers = async () => {
+      const session = await ensureAnonymousSession();
+      if (!session) {
+        setIsLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from("answers")
-        .select("*")
+        .select(`
+          *,
+          invites!inner(creator_id)
+        `)
+        .eq("invites.creator_id", session.user.id)
         .order("created_at", { ascending: false });
 
       if (!error && data) setAnswers(data);
@@ -28,7 +38,7 @@ export default function AnswersPage() {
           <Link href="/" className="text-gray-500 hover:text-pink-500">← На главную</Link>
         </div>
 
-        <h1 className="text-3xl font-bold text-gray-800 mb-8">📋 Ответы на приглашения</h1>
+        <h1 className="text-3xl font-bold text-gray-800 mb-8">📋 Мои ответы</h1>
 
         {isLoading ? (
           <div className="bg-white p-8 rounded-2xl shadow text-center text-gray-500">Загрузка...</div>
