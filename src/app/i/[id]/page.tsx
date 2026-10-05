@@ -14,7 +14,6 @@ const FOOD_OPTIONS = [
   { id: "rollton", name: "Ролтон", emoji: "🍲" },
 ];
 
-// SVG-компоненты для картинок (те же, что и в create)
 function CatsImage() {
   return (
     <svg viewBox="0 0 200 100" className="w-full h-full">
@@ -133,24 +132,16 @@ export default function InvitePage() {
   useEffect(() => {
     const fetchInvite = async () => {
       if (!inviteId) return;
-
-      const { data, error } = await supabase
-        .from("invites")
-        .select("*")
-        .eq("id", inviteId)
-        .single();
-
+      const { data, error } = await supabase.from("invites").select("*").eq("id", inviteId).single();
       if (error) {
-        console.error("Ошибка Supabase:", error);
-        setDbError(`Ошибка: ${error.message} (Код: ${error.code})`);
+        setDbError(`Ошибка: ${error.message}`);
       } else if (!data) {
-        setDbError("Приглашение не найдено в базе данных.");
+        setDbError("Приглашение не найдено.");
       } else {
         setInviteData(data);
       }
       setIsLoading(false);
     };
-
     fetchInvite();
   }, [inviteId]);
 
@@ -161,11 +152,8 @@ export default function InvitePage() {
   };
 
   const toggleFood = (foodId: string) => {
-    if (selectedFoods.includes(foodId)) {
-      setSelectedFoods(selectedFoods.filter((id) => id !== foodId));
-    } else {
-      setSelectedFoods([...selectedFoods, foodId]);
-    }
+    if (selectedFoods.includes(foodId)) setSelectedFoods(selectedFoods.filter((id) => id !== foodId));
+    else setSelectedFoods([...selectedFoods, foodId]);
   };
 
   const handleDateConfirm = async () => {
@@ -173,12 +161,10 @@ export default function InvitePage() {
       alert("Пожалуйста, выбери дату и время!");
       return;
     }
-
     const foodNames = selectedFoods.map((id) => {
       const food = FOOD_OPTIONS.find((f) => f.id === id);
       return `${food?.emoji} ${food?.name}`;
     });
-
     const { error } = await supabase.from("answers").insert({
       invite_id: inviteId,
       recipient_name: inviteData?.recipient_name || "Неизвестно",
@@ -186,23 +172,22 @@ export default function InvitePage() {
       meeting_date: selectedDate,
       meeting_time: selectedTime,
     });
-
     if (error) {
       alert("Ошибка сохранения ответа: " + error.message);
-      console.error("Детали ошибки ответа:", error);
       return;
     }
-
     setStep(4);
   };
 
   const ImageComponent = IMAGE_COMPONENTS[inviteData?.image] || CatsImage;
   const bgClass = BG_CLASSES[inviteData?.background_color] || "from-pink-100 to-white";
+  const buttonYesText = inviteData?.button_yes_text || "Да";
+  const buttonNoText = inviteData?.button_no_text || "Нет";
 
   if (isLoading) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-pink-50">
-        <p className="text-xl text-gray-500">Загрузка приглашения...</p>
+        <p className="text-xl text-gray-500 animate-pulse">Загрузка приглашения...</p>
       </main>
     );
   }
@@ -212,10 +197,6 @@ export default function InvitePage() {
       <main className="flex min-h-screen flex-col items-center justify-center bg-pink-50 p-4 text-center">
         <h1 className="text-5xl font-bold text-gray-800 mb-4">😕</h1>
         <p className="text-xl text-gray-600 mb-4">Приглашение не найдено.</p>
-        <div className="bg-red-100 text-red-700 p-4 rounded-xl max-w-md text-sm mb-6">
-          <p>{dbError || "Данные отсутствуют"}</p>
-          <p className="mt-2 text-xs">ID из ссылки: {inviteId}</p>
-        </div>
         <Link href="/" className="text-pink-500 font-medium">← Вернуться на главную</Link>
       </main>
     );
@@ -223,8 +204,8 @@ export default function InvitePage() {
 
   if (step === 4) {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center bg-pink-50 p-4 text-center">
-        <h1 className="text-5xl font-bold text-pink-600 mb-6">Ура! 🎉</h1>
+      <main className="flex min-h-screen flex-col items-center justify-center bg-pink-50 p-4 text-center animate-in fade-in duration-700">
+        <h1 className="text-5xl font-bold text-pink-600 mb-6 animate-bounce">Ура! 🎉</h1>
         <p className="text-2xl text-gray-700 mb-4">Ты выбрала:</p>
         <div className="flex gap-2 flex-wrap justify-center mb-6">
           {selectedFoods.map((id) => {
@@ -243,21 +224,21 @@ export default function InvitePage() {
 
   if (step === 3) {
     return (
-      <main className={`flex min-h-screen flex-col items-center justify-center bg-gradient-to-b ${bgClass} p-4`}>
+      <main className={`flex min-h-screen flex-col items-center justify-center bg-gradient-to-b ${bgClass} p-4 animate-in slide-in-from-right duration-500`}>
         <div className="max-w-md w-full bg-white rounded-3xl shadow-xl p-8 flex flex-col items-center">
           <h1 className="text-3xl font-bold text-gray-800 text-center mb-2">Когда ты свободна?</h1>
           <p className="text-gray-500 text-center mb-8">Выбери удобный день и время</p>
           <div className="w-full space-y-6 mb-8">
             <div>
               <label className="block text-gray-700 font-medium mb-2">Дата</label>
-              <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-pink-500 outline-none text-lg" />
+              <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-pink-500 outline-none text-lg transition-all" />
             </div>
             <div>
               <label className="block text-gray-700 font-medium mb-2">Время</label>
-              <input type="time" value={selectedTime} onChange={(e) => setSelectedTime(e.target.value)} className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-pink-500 outline-none text-lg" />
+              <input type="time" value={selectedTime} onChange={(e) => setSelectedTime(e.target.value)} className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-pink-500 outline-none text-lg transition-all" />
             </div>
           </div>
-          <button onClick={handleDateConfirm} className="w-full bg-pink-500 hover:bg-pink-600 text-white font-bold py-4 px-6 rounded-full transition-all duration-300 shadow-lg text-lg">Подтвердить</button>
+          <button onClick={handleDateConfirm} className="w-full bg-pink-500 hover:bg-pink-600 text-white font-bold py-4 px-6 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 text-lg">Подтвердить</button>
         </div>
       </main>
     );
@@ -265,38 +246,34 @@ export default function InvitePage() {
 
   if (step === 2) {
     return (
-      <main className={`flex min-h-screen flex-col items-center justify-center bg-gradient-to-b ${bgClass} p-4`}>
+      <main className={`flex min-h-screen flex-col items-center justify-center bg-gradient-to-b ${bgClass} p-4 animate-in slide-in-from-right duration-500`}>
         <div className="max-w-md w-full bg-white rounded-3xl shadow-xl p-8 flex flex-col items-center">
           <h1 className="text-3xl font-bold text-gray-800 text-center mb-2">Что ты хочешь?</h1>
           <p className="text-gray-500 text-center mb-8">Выбери что тебе в кайф</p>
           <div className="grid grid-cols-2 gap-4 w-full mb-8">
             {FOOD_OPTIONS.map((food) => (
-              <button key={food.id} onClick={() => toggleFood(food.id)} className={`flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all ${selectedFoods.includes(food.id) ? "border-pink-500 bg-pink-50 scale-105" : "border-gray-200 hover:border-pink-300"}`}>
+              <button key={food.id} onClick={() => toggleFood(food.id)} className={`flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all duration-300 ${selectedFoods.includes(food.id) ? "border-pink-500 bg-pink-50 scale-105 shadow-md" : "border-gray-200 hover:border-pink-300 hover:scale-105"}`}>
                 <span className="text-4xl mb-2">{food.emoji}</span>
                 <span className="font-medium text-gray-700">{food.name}</span>
               </button>
             ))}
           </div>
-          <button onClick={() => selectedFoods.length > 0 ? setStep(3) : alert("Выбери хотя бы одно блюдо! 😋")} className="w-full bg-pink-500 hover:bg-pink-600 text-white font-bold py-4 px-6 rounded-full transition-all duration-300 shadow-lg text-lg">Продолжить</button>
+          <button onClick={() => selectedFoods.length > 0 ? setStep(3) : alert("Выбери хотя бы одно блюдо! 😋")} className="w-full bg-pink-500 hover:bg-pink-600 text-white font-bold py-4 px-6 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 text-lg">Продолжить</button>
         </div>
       </main>
     );
   }
 
   return (
-    <main className={`flex min-h-screen flex-col items-center justify-center bg-gradient-to-b ${bgClass} p-4 overflow-hidden`}>
+    <main className={`flex min-h-screen flex-col items-center justify-center bg-gradient-to-b ${bgClass} p-4 overflow-hidden animate-in fade-in duration-700`}>
       <div className="max-w-md w-full bg-white rounded-3xl shadow-xl p-8 flex flex-col items-center relative">
-        <Link href="/" className="absolute top-4 left-4 text-gray-400 hover:text-pink-500 text-sm font-medium">← Назад</Link>
+        <Link href="/" className="absolute top-4 left-4 text-gray-400 hover:text-pink-500 text-sm font-medium transition-colors">← Назад</Link>
 
-        <div className="w-full h-32 mb-6">
-          <ImageComponent />
-        </div>
+        <div className="w-full h-32 mb-6"><ImageComponent /></div>
 
         <h1 className="text-center mb-8">
           {inviteData?.recipient_name && (
-            <span className="block text-4xl font-extrabold text-pink-600 mb-2">
-              {inviteData.recipient_name}!
-            </span>
+            <span className="block text-4xl font-extrabold text-pink-600 mb-2">{inviteData.recipient_name}!</span>
           )}
           <span className="block text-xl font-semibold text-gray-700 leading-relaxed">
             {inviteData?.custom_text || "Ты пойдешь со мной на свидание?"}
@@ -304,8 +281,12 @@ export default function InvitePage() {
         </h1>
 
         <div className="flex flex-col gap-4 w-full relative">
-          <button onClick={() => setStep(2)} className="w-full bg-pink-500 hover:bg-pink-600 text-white font-bold py-4 px-6 rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg text-lg">Да</button>
-          <button onMouseEnter={moveNoButton} onTouchStart={moveNoButton} onClick={moveNoButton} style={{ transform: `translate(${noButtonPosition.x}px, ${noButtonPosition.y}px)`, transition: "transform 0.2s ease-out" }} className="w-full bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold py-4 px-6 rounded-full shadow-md text-lg">Нет</button>
+          <button onClick={() => setStep(2)} className="w-full bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white font-bold py-4 px-6 rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl text-lg">
+            {buttonYesText}
+          </button>
+          <button onMouseEnter={moveNoButton} onTouchStart={moveNoButton} onClick={moveNoButton} style={{ transform: `translate(${noButtonPosition.x}px, ${noButtonPosition.y}px)`, transition: "transform 0.2s ease-out" }} className="w-full bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold py-4 px-6 rounded-full shadow-md text-lg">
+            {buttonNoText}
+          </button>
         </div>
       </div>
     </main>
