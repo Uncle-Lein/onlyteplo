@@ -6,11 +6,31 @@ import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
 const ALL_OPTIONS: Record<string, { id: string; name: string; emoji: string }[]> = {
-  food: [{ id: "pizza", name: "Пицца", emoji: "🍕" }, { id: "sushi", name: "Суши", emoji: "🍣" }, { id: "burger", name: "Бургер", emoji: "🍔" }, { id: "pasta", name: "Паста", emoji: "🍝" }, { id: "ramen", name: "Рамен", emoji: "🍜" }, { id: "rollton", name: "Ролтон", emoji: "🍲" }],
-  movie: [{ id: "comedy", name: "Комедия", emoji: "🎭" }, { id: "drama", name: "Мелодрама", emoji: "💔" }, { id: "action", name: "Боевик", emoji: "💥" }, { id: "cartoon", name: "Мультик", emoji: "🎨" }, { id: "sci-fi", name: "Фантастика", emoji: "🚀" }, { id: "horror", name: "Ужасы", emoji: "👻" }],
-  activity: [{ id: "walk", name: "Прогулка", emoji: "🚶" }, { id: "cinema", name: "Кино", emoji: "🎬" }, { id: "bowling", name: "Боулинг", emoji: "🎳" }, { id: "museum", name: "Музей", emoji: "🏛️" }, { id: "picnic", name: "Пикник", emoji: "🧺" }, { id: "quest", name: "Квест", emoji: "🔍" }],
-  drink: [{ id: "coffee", name: "Кофе", emoji: "☕" }, { id: "tea", name: "Чай", emoji: "🍵" }, { id: "juice", name: "Сок", emoji: "🧃" }, { id: "smoothie", name: "Смузи", emoji: "🥤" }, { id: "milkshake", name: "Милкшейк", emoji: "🍦" }, { id: "lemonade", name: "Лимонад", emoji: "🍋" }],
-  place: [{ id: "restaurant", name: "Ресторан", emoji: "🍽️" }, { id: "park", name: "Парк", emoji: "🌳" }, { id: "embankment", name: "Набережная", emoji: "🌊" }, { id: "rooftop", name: "Крыша", emoji: "🌃" }, { id: "cafe", name: "Кафе", emoji: "☕" }, { id: "home", name: "Дома", emoji: "🏠" }],
+  food: [
+    { id: "pizza", name: "Пицца", emoji: "🍕" }, { id: "sushi", name: "Суши", emoji: "🍣" },
+    { id: "burger", name: "Бургер", emoji: "🍔" }, { id: "pasta", name: "Паста", emoji: "🍝" },
+    { id: "ramen", name: "Рамен", emoji: "🍜" }, { id: "rollton", name: "Ролтон", emoji: "🍲" },
+  ],
+  movie: [
+    { id: "comedy", name: "Комедия", emoji: "🎭" }, { id: "drama", name: "Мелодрама", emoji: "💔" },
+    { id: "action", name: "Боевик", emoji: "💥" }, { id: "cartoon", name: "Мультик", emoji: "🎨" },
+    { id: "sci-fi", name: "Фантастика", emoji: "🚀" }, { id: "horror", name: "Ужасы", emoji: "👻" },
+  ],
+  activity: [
+    { id: "walk", name: "Прогулка", emoji: "🚶" }, { id: "cinema", name: "Кино", emoji: "🎬" },
+    { id: "bowling", name: "Боулинг", emoji: "🎳" }, { id: "museum", name: "Музей", emoji: "🏛️" },
+    { id: "picnic", name: "Пикник", emoji: "🧺" }, { id: "quest", name: "Квест", emoji: "🔍" },
+  ],
+  drink: [
+    { id: "coffee", name: "Кофе", emoji: "☕" }, { id: "tea", name: "Чай", emoji: "🍵" },
+    { id: "juice", name: "Сок", emoji: "🧃" }, { id: "smoothie", name: "Смузи", emoji: "🥤" },
+    { id: "milkshake", name: "Милкшейк", emoji: "🍦" }, { id: "lemonade", name: "Лимонад", emoji: "🍋" },
+  ],
+  place: [
+    { id: "restaurant", name: "Ресторан", emoji: "🍽️" }, { id: "park", name: "Парк", emoji: "🌳" },
+    { id: "embankment", name: "Набережная", emoji: "🌊" }, { id: "rooftop", name: "Крыша", emoji: "🌃" },
+    { id: "cafe", name: "Кафе", emoji: "☕" }, { id: "home", name: "Дома", emoji: "🏠" },
+  ],
 };
 
 const CATEGORY_TITLES: Record<string, { title: string; subtitle: string }> = {
@@ -37,6 +57,7 @@ export default function InvitePage() {
   const [noButtonPosition, setNoButtonPosition] = useState({ x: 0, y: 0 });
   const [noButtonScale, setNoButtonScale] = useState(1);
   const [showKiss, setShowKiss] = useState(false);
+  const [isNoButtonHidden, setIsNoButtonHidden] = useState(false);
   const [selectedFoods, setSelectedFoods] = useState<string[]>([]);
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
@@ -61,7 +82,11 @@ export default function InvitePage() {
     const anim = inviteData?.no_animation || "run";
     if (anim === "kiss") {
       setShowKiss(true);
-      setTimeout(() => setShowKiss(false), 1200);
+      setIsNoButtonHidden(true);
+      setTimeout(() => {
+        setShowKiss(false);
+        setIsNoButtonHidden(false);
+      }, 2000);
     } else if (anim === "shrink") {
       setNoButtonScale((prev) => Math.max(prev - 0.2, 0.1));
     } else if (anim === "run") {
@@ -163,15 +188,22 @@ export default function InvitePage() {
           <button onClick={() => setStep(2)} className="w-full bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white font-bold py-4 px-6 rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl text-lg">
             {inviteData?.button_yes_text || "Да"}
           </button>
-          {showKiss && <div className="absolute inset-0 flex items-center justify-center pointer-events-none"><span className="text-6xl animate-ping">💋</span></div>}
+          {showKiss && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+              <span className="text-7xl animate-ping">💋</span>
+            </div>
+          )}
           <button
             onMouseEnter={handleNoClick}
             onTouchStart={handleNoClick}
             onClick={handleNoClick}
             style={{
-              transform: inviteData?.no_animation === "run" ? `translate(${noButtonPosition.x}px, ${noButtonPosition.y}px)` : `scale(${noButtonScale})`,
-              transition: "transform 0.3s ease-out, opacity 0.3s",
-              opacity: noButtonScale < 0.3 ? 0.3 : 1,
+              transform: inviteData?.no_animation === "run"
+                ? `translate(${noButtonPosition.x}px, ${noButtonPosition.y}px)`
+                : `scale(${noButtonScale})`,
+              transition: "transform 0.3s ease-out, opacity 0.5s",
+              opacity: isNoButtonHidden ? 0 : (noButtonScale < 0.3 ? 0.3 : 1),
+              pointerEvents: isNoButtonHidden ? "none" : "auto",
             }}
             className="w-full bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold py-4 px-6 rounded-full shadow-md text-lg"
           >

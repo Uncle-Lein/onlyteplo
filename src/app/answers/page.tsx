@@ -4,6 +4,25 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase, ensureAnonymousSession } from "@/lib/supabase";
 
+// Словарь для перевода ID в названия с эмодзи
+const OPTION_NAMES: Record<string, string> = {
+  // Еда
+  pizza: "🍕 Пицца", sushi: "🍣 Суши", burger: "🍔 Бургер",
+  pasta: "🍝 Паста", ramen: "🍜 Рамен", rollton: "🍲 Ролтон",
+  // Кино
+  comedy: "🎭 Комедия", drama: "💔 Мелодрама", action: "💥 Боевик",
+  cartoon: "🎨 Мультик", "sci-fi": "🚀 Фантастика", horror: "👻 Ужасы",
+  // Активности
+  walk: "🚶 Прогулка", cinema: "🎬 Кино", bowling: "🎳 Боулинг",
+  museum: "🏛️ Музей", picnic: "🧺 Пикник", quest: "🔍 Квест",
+  // Напитки
+  coffee: "☕ Кофе", tea: "🍵 Чай", juice: "🧃 Сок",
+  smoothie: "🥤 Смузи", milkshake: "🍦 Милкшейк", lemonade: "🍋 Лимонад",
+  // Места
+  restaurant: "🍽️ Ресторан", park: "🌳 Парк", embankment: "🌊 Набережная",
+  rooftop: "🌃 Крыша", cafe: "☕ Кафе", home: "🏠 Дома",
+};
+
 export default function AnswersPage() {
   const [answers, setAnswers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -11,17 +30,11 @@ export default function AnswersPage() {
   useEffect(() => {
     const fetchAnswers = async () => {
       const session = await ensureAnonymousSession();
-      if (!session) {
-        setIsLoading(false);
-        return;
-      }
+      if (!session) { setIsLoading(false); return; }
 
       const { data, error } = await supabase
         .from("answers")
-        .select(`
-          *,
-          invites!inner(creator_id)
-        `)
+        .select(`*, invites!inner(creator_id, recipient_name)`)
         .eq("invites.creator_id", session.user.id)
         .order("created_at", { ascending: false });
 
@@ -57,9 +70,18 @@ export default function AnswersPage() {
                   <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">✅ Согласие</span>
                 </div>
                 <div className="space-y-2">
-                  <p className="text-gray-600"><span className="font-semibold">👤 Кому:</span> {answer.recipient_name}</p>
-                  <p className="text-gray-600"><span className="font-semibold">🍽 Еда:</span> {answer.foods?.join(", ")}</p>
-                  <p className="text-gray-600"><span className="font-semibold">📅 Дата встречи:</span> {answer.meeting_date} в {answer.meeting_time}</p>
+                  <p className="text-gray-600">
+                    <span className="font-semibold">👤 Кому:</span> {answer.recipient_name || answer.invites?.recipient_name || "—"}
+                  </p>
+                  <p className="text-gray-600">
+                    <span className="font-semibold">🍽 Выбор:</span>{" "}
+                    {Array.isArray(answer.foods) && answer.foods.length > 0
+                      ? answer.foods.map((id: string) => OPTION_NAMES[id] || id).join(", ")
+                      : "—"}
+                  </p>
+                  <p className="text-gray-600">
+                    <span className="font-semibold">📅 Дата встречи:</span> {answer.meeting_date} в {answer.meeting_time}
+                  </p>
                 </div>
               </div>
             ))}
