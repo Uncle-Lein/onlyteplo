@@ -2,20 +2,29 @@ import Link from "next/link";
 
 export default function LandingPage() {
   return (
-    <main className="relative min-h-screen bg-gradient-to-b from-pink-100 via-pink-50 to-white overflow-hidden flex items-center justify-center p-4">
+    <main className="relative min-h-screen bg-gradient-to-br from-pink-200 via-rose-100 to-blue-100 overflow-hidden flex items-center justify-center p-4">
 
-      {/* Плавающие сердечки на фоне */}
+      {/* Декоративные размытые круги (создают "сияние") */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-[10%] left-[5%] text-4xl opacity-20 animate-float-slow">❤️</div>
-        <div className="absolute top-[20%] right-[10%] text-3xl opacity-20 animate-float-medium">💖</div>
-        <div className="absolute bottom-[15%] left-[15%] text-3xl opacity-20 animate-float-fast">💕</div>
-        <div className="absolute top-[60%] right-[20%] text-4xl opacity-15 animate-float-slow">🌸</div>
-        <div className="absolute bottom-[25%] right-[5%] text-3xl opacity-20 animate-float-medium">💗</div>
-        <div className="absolute top-[40%] left-[8%] text-2xl opacity-15 animate-float-fast">✨</div>
+        <div className="absolute -top-20 -left-20 w-96 h-96 bg-pink-300 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-blob"></div>
+        <div className="absolute top-1/3 -right-20 w-96 h-96 bg-rose-300 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-blob animation-delay-2000"></div>
+        <div className="absolute -bottom-20 left-1/3 w-96 h-96 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-blob animation-delay-4000"></div>
+      </div>
+
+      {/* Плавающие сердечки и элементы */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-[10%] left-[5%] text-5xl opacity-40 animate-float-slow">❤️</div>
+        <div className="absolute top-[20%] right-[10%] text-4xl opacity-40 animate-float-medium">💖</div>
+        <div className="absolute bottom-[15%] left-[15%] text-4xl opacity-40 animate-float-fast">💕</div>
+        <div className="absolute top-[60%] right-[20%] text-5xl opacity-30 animate-float-slow">🌸</div>
+        <div className="absolute bottom-[25%] right-[5%] text-4xl opacity-40 animate-float-medium">💗</div>
+        <div className="absolute top-[40%] left-[8%] text-3xl opacity-30 animate-float-fast">✨</div>
+        <div className="absolute top-[15%] left-[45%] text-3xl opacity-30 animate-float-slow">💝</div>
+        <div className="absolute bottom-[10%] right-[35%] text-4xl opacity-30 animate-float-medium">🌷</div>
       </div>
 
       {/* Основной контент */}
-      <div className="relative z-10 max-w-2xl w-full bg-white/80 backdrop-blur-md rounded-[2.5rem] shadow-2xl p-8 md:p-12 text-center border border-white/60">
+      <div className="relative z-10 max-w-2xl w-full bg-white/90 backdrop-blur-xl rounded-[2.5rem] shadow-2xl p-8 md:p-12 text-center border border-white/80">
 
         {/* Логотип / Иконка */}
         <div className="text-7xl mb-4 animate-pulse-soft">💌</div>
