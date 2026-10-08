@@ -4,6 +4,9 @@ import { useState } from "react";
 import Link from "next/link";
 import { supabase, ensureAnonymousSession } from "@/lib/supabase";
 
+// Жёстко прописываем URL Supabase (не зависит от env)
+const SUPABASE_URL = "https://ioetbtpqupyxtoeazesd.supabase.co";
+
 const BACKGROUNDS = [
   { id: "pink", label: "Розовый", class: "from-pink-100 to-white", preview: "bg-pink-100" },
   { id: "blue", label: "Голубой", class: "from-blue-100 to-white", preview: "bg-blue-100" },
@@ -25,7 +28,6 @@ const NO_ANIMATIONS = [
   { id: "shrink", label: "Уменьшение", emoji: "🔽" },
 ];
 
-// SVG-компоненты
 function CatsImage() { return <svg viewBox="0 0 200 100" className="w-full h-full"><g transform="translate(30,20)"><ellipse cx="40" cy="60" rx="30" ry="35" fill="#F4A460"/><polygon points="15,30 5,0 30,20" fill="#F4A460"/><polygon points="65,30 75,0 50,20" fill="#F4A460"/><circle cx="30" cy="55" r="4" fill="#000"/><circle cx="50" cy="55" r="4" fill="#000"/><ellipse cx="40" cy="65" rx="5" ry="3" fill="#FF69B4"/></g><g transform="translate(100,25)"><ellipse cx="40" cy="55" rx="28" ry="32" fill="#FFFFFF" stroke="#E0E0E0" strokeWidth="2"/><polygon points="17,28 8,2 32,20" fill="#FFFFFF" stroke="#E0E0E0" strokeWidth="2"/><polygon points="63,28 72,2 48,20" fill="#FFFFFF" stroke="#E0E0E0" strokeWidth="2"/><circle cx="30" cy="50" r="4" fill="#000"/><circle cx="50" cy="50" r="4" fill="#000"/><ellipse cx="40" cy="60" rx="5" ry="3" fill="#FFB6C1"/></g><path d="M95 70 C95 65, 100 60, 105 65 C110 60, 115 65, 115 70 C115 78, 105 85, 105 85 C105 85, 95 78, 95 70 Z" fill="#FF1493"/></svg>; }
 function HeartsImage() { return <svg viewBox="0 0 200 100" className="w-full h-full"><path d="M50 80 C50 60, 30 50, 30 35 C30 20, 45 15, 50 25 C55 15, 70 20, 70 35 C70 50, 50 60, 50 80 Z" fill="#FF1493"/><path d="M100 85 C100 65, 80 55, 80 40 C80 25, 95 20, 100 30 C105 20, 120 25, 120 40 C120 55, 100 65, 100 85 Z" fill="#FF69B4"/><path d="M150 80 C150 60, 130 50, 130 35 C130 20, 145 15, 150 25 C155 15, 170 20, 170 35 C170 50, 150 60, 150 80 Z" fill="#FF1493"/></svg>; }
 function FlowersImage() { return <svg viewBox="0 0 200 100" className="w-full h-full"><g transform="translate(40,20)"><line x1="15" y1="40" x2="15" y2="70" stroke="#228B22" strokeWidth="3"/><circle cx="15" cy="30" r="10" fill="#FFD700"/><circle cx="5" cy="25" r="8" fill="#FF69B4"/><circle cx="25" cy="25" r="8" fill="#FF69B4"/><circle cx="5" cy="35" r="8" fill="#FF69B4"/><circle cx="25" cy="35" r="8" fill="#FF69B4"/></g><g transform="translate(100,25)"><line x1="15" y1="40" x2="15" y2="65" stroke="#228B22" strokeWidth="3"/><circle cx="15" cy="30" r="10" fill="#FFD700"/><circle cx="5" cy="25" r="8" fill="#FF1493"/><circle cx="25" cy="25" r="8" fill="#FF1493"/><circle cx="5" cy="35" r="8" fill="#FF1493"/><circle cx="25" cy="35" r="8" fill="#FF1493"/></g><g transform="translate(160,20)"><line x1="15" y1="40" x2="15" y2="70" stroke="#228B22" strokeWidth="3"/><circle cx="15" cy="30" r="10" fill="#FFD700"/><circle cx="5" cy="25" r="8" fill="#9B59B6"/><circle cx="25" cy="25" r="8" fill="#9B59B6"/><circle cx="5" cy="35" r="8" fill="#9B59B6"/><circle cx="25" cy="35" r="8" fill="#9B59B6"/></g></svg>; }
@@ -57,6 +59,7 @@ export default function CreatePage() {
   const [copied, setCopied] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const totalSteps = 8;
   const progress = (step / totalSteps) * 100;
@@ -72,28 +75,53 @@ export default function CreatePage() {
 
   const uploadFile = async (file: File, type: "image" | "background") => {
     setIsUploading(true);
+    setUploadError(null);
+
     try {
-      const fileExt = file.name.split(".").pop();
+      // Проверка размера файла (макс. 5 MB)
+      if (file.size > 5 * 1024 * 1024) {
+        throw new Error("Файл слишком большой. Максимум 5 MB.");
+      }
+
+      const fileExt = file.name.split(".").pop() || "jpg";
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
       const filePath = `${type}/${fileName}`;
 
-      const { error: uploadError } = await supabase.storage
+      console.log("📤 Начинаем загрузку:", filePath);
+
+      // Загружаем файл
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from("invites")
-        .upload(filePath, file);
+        .upload(filePath, file, {
+          cacheControl: "3600",
+          upsert: false,
+        });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error("❌ Ошибка загрузки:", uploadError);
+        throw new Error(uploadError.message);
+      }
 
-      // Формируем URL вручную, чтобы избежать проблем с getPublicUrl
-      const supabaseUrl = "https://ioetbtpqupyxtoeazesd.supabase.co";
-      const publicUrl = `${supabaseUrl}/storage/v1/object/public/invites/${filePath}`;
+      console.log("✅ Файл загружен:", uploadData);
 
-      console.log("Загружен файл, URL:", publicUrl);
+      // Получаем публичный URL
+      const { data: urlData } = supabase.storage
+        .from("invites")
+        .getPublicUrl(filePath);
+
+      const publicUrl = urlData.publicUrl;
+      console.log("🔗 Публичный URL:", publicUrl);
+
+      if (!publicUrl || !publicUrl.startsWith("http")) {
+        throw new Error("Не удалось получить публичный URL");
+      }
 
       if (type === "image") setCustomImageUrl(publicUrl);
       else setCustomBackgroundUrl(publicUrl);
     } catch (err: any) {
-      console.error("Ошибка загрузки:", err);
-      alert("Ошибка загрузки: " + err.message);
+      console.error("❌ Ошибка:", err);
+      setUploadError(err.message || "Не удалось загрузить файл");
+      alert("Ошибка загрузки: " + (err.message || "Неизвестная ошибка"));
     } finally {
       setIsUploading(false);
     }
@@ -185,7 +213,7 @@ export default function CreatePage() {
               </div>
 
               <div className="w-full max-w-md">
-                <label className="block text-gray-700 font-medium mb-2 text-center text-sm">Или загрузи свою картинку</label>
+                <label className="block text-gray-700 font-medium mb-2 text-center text-sm">Или загрузи свою картинку (до 5 МБ)</label>
                 <label className={`flex flex-col items-center justify-center w-full h-28 border-2 border-dashed rounded-2xl cursor-pointer transition-all hover:border-pink-400 hover:bg-pink-50 ${customImageUrl ? "border-pink-500 bg-pink-50" : "border-gray-300"}`}>
                   {customImageUrl ? (
                     <img src={customImageUrl} alt="Своя картинка" className="max-h-24 object-contain" />
@@ -215,7 +243,7 @@ export default function CreatePage() {
               </div>
 
               <div className="w-full max-w-md">
-                <label className="block text-gray-700 font-medium mb-2 text-center text-sm">Или загрузи свой фон</label>
+                <label className="block text-gray-700 font-medium mb-2 text-center text-sm">Или загрузи свой фон (до 5 МБ)</label>
                 <label className={`flex flex-col items-center justify-center w-full h-28 border-2 border-dashed rounded-2xl cursor-pointer transition-all hover:border-pink-400 hover:bg-pink-50 ${customBackgroundUrl ? "border-pink-500 bg-pink-50" : "border-gray-300"}`}>
                   {customBackgroundUrl ? (
                     <img src={customBackgroundUrl} alt="Свой фон" className="max-h-24 object-cover rounded-lg" />
@@ -234,7 +262,7 @@ export default function CreatePage() {
 
           {step === 5 && (<div className="flex-1 flex flex-col items-center justify-center"><h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Текст приглашения</h2><textarea value={customText} onChange={(e) => setCustomText(e.target.value)} rows={3} autoFocus className="w-full max-w-md p-5 border-2 border-gray-200 rounded-2xl focus:border-pink-500 focus:ring-4 focus:ring-pink-100 outline-none text-lg resize-none text-gray-900 placeholder:text-gray-400" /></div>)}
 
-          {step === 6 && (<div className="flex-1 flex flex-col items-center justify-center"><h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Текст на кнопках</h2><div className="w-full max-w-md space-y-4"><div><label className="block text-gray-700 font-medium mb-2">Кнопка «Да»</label><input type="text" value={buttonYesText} onChange={(e) => setButtonYesText(e.target.value)} className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-pink-500 focus:ring-4 focus:ring-pink-100 outline-none text-lg text-gray-900" /></div><div><label className="block text-gray-700 font-medium mb-2">Кнопка «Нет»</label><input type="text" value={buttonNoText} onChange={(e) => setButtonNoText(e.target.value)} className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-pink-500 focus:ring-4 focus:ring-pink-100 outline-none text-lg text-gray-900" /></div></div></div>)}
+          {step === 6 && (<div className="flex-1 flex flex-col items-center justify-center"><h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Текст на кнопках</h2><div className="w-full max-w-md space-y-4"><div><label className="block text-gray-700 font-medium mb-2">Кнопка «Да»</label><input type="text" value={buttonYesText} onChange={(e) => setButtonYesText(e.target.value)} className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-pink-500 outline-none text-lg text-gray-900" /></div><div><label className="block text-gray-700 font-medium mb-2">Кнопка «Нет»</label><input type="text" value={buttonNoText} onChange={(e) => setButtonNoText(e.target.value)} className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-pink-500 outline-none text-lg text-gray-900" /></div></div></div>)}
 
           {step === 7 && (<div className="flex-1 flex flex-col items-center justify-center"><h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">Что будем выбирать?</h2><p className="text-gray-500 text-center mb-4 text-sm">Можно выбрать несколько категорий</p><div className="grid grid-cols-2 gap-3 w-full max-w-md mb-8">{CATEGORIES.map((cat) => (<button key={cat.id} onClick={() => toggleCategory(cat.id)} className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all duration-300 transform hover:-translate-y-1 ${selectedCategories.includes(cat.id) ? "border-pink-500 bg-pink-50 scale-105 shadow-md" : "border-gray-200 hover:border-pink-300"}`}><span className="text-2xl">{cat.icon}</span><span className="font-medium text-gray-700">{cat.label}</span></button>))}</div><h3 className="text-lg font-bold text-gray-800 mb-4">Анимация кнопки «Нет»</h3><div className="grid grid-cols-3 gap-3 w-full max-w-md">{NO_ANIMATIONS.map((anim) => (<button key={anim.id} onClick={() => setNoAnimation(anim.id)} className={`p-3 rounded-2xl border-2 text-sm font-medium transition-all duration-300 flex flex-col items-center transform hover:-translate-y-1 ${noAnimation === anim.id ? "border-pink-500 bg-pink-50 shadow-md" : "border-gray-200 hover:border-pink-300"}`}><span className="text-2xl mb-1">{anim.emoji}</span>{anim.label}</button>))}</div></div>)}
 
