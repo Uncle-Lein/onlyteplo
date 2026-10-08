@@ -44,3 +44,28 @@ body {
 .animate-float-medium { animation: float-medium 5s ease-in-out infinite; }
 .animate-float-fast { animation: float-fast 4s ease-in-out infinite; }
 .animate-pulse-soft { animation: pulse-soft 3s ease-in-out infinite; }
+
+/* Сброс стилей для input[type="date"] и input[type="time"] (для мобильных) */
+input[type="date"],
+input[type="time"] {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
+  opacity: 0.5;
+  cursor: pointer;
+}
+
+@media (max-width: 480px) {
+  input[type="date"],
+  input[type="time"] {
+    font-size: 14px;
+    padding: 12px 10px;
+  }
+}
