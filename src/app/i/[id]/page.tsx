@@ -107,6 +107,11 @@ export default function InvitePage() {
     else setStep(3);
   };
 
+  const handlePrevCategory = () => {
+    if (activeCategoryIndex > 0) setActiveCategoryIndex(activeCategoryIndex - 1);
+    else setStep(1);
+  };
+
   const handleDateConfirm = async () => {
     if (!selectedDate || !selectedTime) { alert("Выбери дату и время!"); return; }
     const { error } = await supabase.from("answers").insert({ invite_id: inviteId, recipient_name: inviteData?.recipient_name, foods: selectedFoods, meeting_date: selectedDate, meeting_time: selectedTime });
@@ -159,8 +164,9 @@ export default function InvitePage() {
   if (step === 3) {
     return (
       <main className={`flex min-h-screen flex-col items-center justify-center p-4 ${bgClassName}`} style={bgStyle}>
-        <div className="max-w-md w-full bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl p-8 flex flex-col items-center border border-white/80">
-          <h1 className="text-3xl font-bold text-gray-800 text-center mb-2">Когда ты свободна?</h1>
+        <div className="max-w-md w-full bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl p-8 flex flex-col items-center border border-white/80 relative">
+          <button onClick={() => setStep(2)} className="absolute top-4 left-4 text-gray-400 hover:text-pink-500 text-sm font-medium">← Назад</button>
+          <h1 className="text-3xl font-bold text-gray-800 text-center mb-2 mt-4">Когда ты свободна?</h1>
           <p className="text-gray-500 text-center mb-8">Выбери удобный день и время</p>
           <div className="w-full space-y-6 mb-8">
             <div>
@@ -181,8 +187,9 @@ export default function InvitePage() {
   if (step === 2) {
     return (
       <main className={`flex min-h-screen flex-col items-center justify-center p-4 ${bgClassName}`} style={bgStyle}>
-        <div className="max-w-md w-full bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl p-8 flex flex-col items-center border border-white/80">
-          <div className="w-full bg-gray-100 rounded-full h-1.5 mb-6"><div className="bg-pink-500 h-1.5 rounded-full transition-all duration-500" style={{ width: `${((activeCategoryIndex + 1) / categories.length) * 100}%` }}></div></div>
+        <div className="max-w-md w-full bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl p-8 flex flex-col items-center border border-white/80 relative">
+          <button onClick={handlePrevCategory} className="absolute top-4 left-4 text-gray-400 hover:text-pink-500 text-sm font-medium">← Назад</button>
+          <div className="w-full bg-gray-100 rounded-full h-1.5 mb-6 mt-4"><div className="bg-pink-500 h-1.5 rounded-full transition-all duration-500" style={{ width: `${((activeCategoryIndex + 1) / categories.length) * 100}%` }}></div></div>
           <h1 className="text-3xl font-bold text-gray-800 text-center mb-2">{categoryInfo.title}</h1>
           <p className="text-gray-500 text-center mb-8">{categoryInfo.subtitle}</p>
           <div className="grid grid-cols-2 gap-4 w-full mb-8">
