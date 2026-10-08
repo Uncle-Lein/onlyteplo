@@ -83,11 +83,16 @@ export default function CreatePage() {
 
       if (uploadError) throw uploadError;
 
-      const { data: urlData } = supabase.storage.from("invites").getPublicUrl(filePath);
+      // Формируем URL вручную, чтобы избежать проблем с getPublicUrl
+      const supabaseUrl = "https://ioetbtpqupyxtoeazesd.supabase.co";
+      const publicUrl = `${supabaseUrl}/storage/v1/object/public/invites/${filePath}`;
 
-      if (type === "image") setCustomImageUrl(urlData.publicUrl);
-      else setCustomBackgroundUrl(urlData.publicUrl);
+      console.log("Загружен файл, URL:", publicUrl);
+
+      if (type === "image") setCustomImageUrl(publicUrl);
+      else setCustomBackgroundUrl(publicUrl);
     } catch (err: any) {
+      console.error("Ошибка загрузки:", err);
       alert("Ошибка загрузки: " + err.message);
     } finally {
       setIsUploading(false);
