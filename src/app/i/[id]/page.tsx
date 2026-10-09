@@ -42,6 +42,24 @@ const CATEGORY_TITLES: Record<string, { title: string; subtitle: string }> = {
   place: { title: "Куда пойдем?", subtitle: "Выбери место" },
 };
 
+// Словарь текстов в зависимости от пола получателя
+const TEXTS = {
+  her: {
+    dateQuestion: "Когда ты свободна?",
+    dateSubtitle: "Выбери удобный день и время",
+    recipientEnding: "согласилась",
+    finalFallback: "Рад, что ты согласилась!",
+    choseFoods: "Ты выбрала:",
+  },
+  him: {
+    dateQuestion: "Когда ты свободен?",
+    dateSubtitle: "Выбери удобный день и время",
+    recipientEnding: "согласился",
+    finalFallback: "Рада, что ты согласился!",
+    choseFoods: "Ты выбрал:",
+  },
+};
+
 const BG_CLASSES: Record<string, string> = { pink: "from-pink-100 to-white", blue: "from-blue-100 to-white", beige: "from-amber-50 to-white", mint: "from-green-100 to-white" };
 
 export default function InvitePage() {
@@ -114,7 +132,6 @@ export default function InvitePage() {
     setStep(4);
   };
 
-  // Находим компонент картинки по ID из массива IMAGES
   const ImageComponent = IMAGES.find((i) => i.id === inviteData?.image)?.component || CatsImage;
   const bgClass = BG_CLASSES[inviteData?.background_color] || "from-pink-100 to-white";
   const useCustomImage = !!inviteData?.custom_image_url;
@@ -123,6 +140,9 @@ export default function InvitePage() {
   const currentCategory = categories[activeCategoryIndex];
   const currentOptions = ALL_OPTIONS[currentCategory] || [];
   const categoryInfo = CATEGORY_TITLES[currentCategory] || { title: "Выбери", subtitle: "" };
+
+  // Определяем тексты в зависимости от пола получателя
+  const t = TEXTS[inviteData?.for_whom === "him" ? "him" : "her"];
 
   const finalDescriptionText = (inviteData?.final_description || "")
     .replace("{date}", selectedDate).replace("{time}", selectedTime).replace("{food}", selectedFoods.join(", "));
@@ -145,7 +165,9 @@ export default function InvitePage() {
         </div>
         <div className="relative z-10 max-w-md w-full bg-white/70 backdrop-blur-xl rounded-[2.5rem] shadow-2xl p-8 text-center border border-white/80">
           <div className="text-7xl mb-4 animate-bounce">💖</div>
-          <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-rose-500 mb-6">{inviteData?.final_title || "Ура! 🎉"}</h1>
+          <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-rose-500 mb-6">
+            {inviteData?.final_title || t.finalFallback}
+          </h1>
           <div className="bg-gradient-to-br from-pink-50/80 to-rose-50/80 rounded-2xl p-6 mb-6 border border-pink-100"><p className="text-lg text-gray-700 leading-relaxed">{finalDescriptionText}</p></div>
           <div className="space-y-3 mb-6">
             {selectedFoods.length > 0 && (<div className="bg-white/60 rounded-xl p-3 border border-pink-100"><p className="text-xs text-gray-500 uppercase tracking-wide mb-1">🍽 Твой выбор</p><p className="text-sm font-semibold text-gray-800">{selectedFoods.map((id: string) => { const allOptions = Object.values(ALL_OPTIONS).flat(); const opt = allOptions.find((o: any) => o.id === id); return opt ? `${opt.emoji} ${opt.name}` : id; }).join(", ")}</p></div>)}
@@ -162,8 +184,8 @@ export default function InvitePage() {
       <main className={`flex min-h-screen flex-col items-center justify-center p-4 ${bgClassName}`} style={bgStyle}>
         <div className="max-w-md w-full bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl p-8 flex flex-col items-center border border-white/80 relative">
           <button onClick={() => setStep(2)} className="absolute top-4 left-4 text-gray-400 hover:text-pink-500 text-sm font-medium">← Назад</button>
-          <h1 className="text-3xl font-bold text-gray-800 text-center mb-2 mt-4">Когда ты свободна?</h1>
-          <p className="text-gray-500 text-center mb-8">Выбери удобный день и время</p>
+          <h1 className="text-3xl font-bold text-gray-800 text-center mb-2 mt-4">{t.dateQuestion}</h1>
+          <p className="text-gray-500 text-center mb-8">{t.dateSubtitle}</p>
           <div className="w-full space-y-6 mb-8">
             <div>
               <label className="block text-gray-700 font-medium mb-2">Дата</label>
