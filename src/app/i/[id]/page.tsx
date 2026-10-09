@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { IMAGE_COMPONENTS } from "@/components/Images";
+import { IMAGES, CatsImage } from "@/components/Images";
 
 const ALL_OPTIONS: Record<string, { id: string; name: string; emoji: string }[]> = {
   food: [
@@ -114,7 +114,8 @@ export default function InvitePage() {
     setStep(4);
   };
 
-  const ImageComponent = IMAGE_COMPONENTS[inviteData?.image] || IMAGE_COMPONENTS.cats;
+  // Находим компонент картинки по ID из массива IMAGES
+  const ImageComponent = IMAGES.find((i) => i.id === inviteData?.image)?.component || CatsImage;
   const bgClass = BG_CLASSES[inviteData?.background_color] || "from-pink-100 to-white";
   const useCustomImage = !!inviteData?.custom_image_url;
   const useCustomBackground = !!inviteData?.custom_background_url;
@@ -131,11 +132,6 @@ export default function InvitePage() {
     : {};
   const bgClassName = useCustomBackground ? "" : `bg-gradient-to-b ${bgClass}`;
 
-  // Определяем правильный заголовок по полу
-  const finalTitle = inviteData?.final_title || (
-    inviteData?.for_whom === "him" ? "Рада, что ты согласился!" : "Рад, что ты согласилась!"
-  );
-
   if (isLoading) return <main className="flex min-h-screen items-center justify-center bg-pink-50"><p className="text-xl text-gray-500 animate-pulse">Загрузка...</p></main>;
   if (dbError || !inviteData) return <main className="flex min-h-screen flex-col items-center justify-center bg-pink-50 p-4 text-center"><h1 className="text-5xl font-bold text-gray-800 mb-4">😕</h1><p className="text-xl text-gray-600 mb-4">Приглашение не найдено.</p><Link href="/" className="text-pink-500 font-medium">← На главную</Link></main>;
 
@@ -149,12 +145,8 @@ export default function InvitePage() {
         </div>
         <div className="relative z-10 max-w-md w-full bg-white/70 backdrop-blur-xl rounded-[2.5rem] shadow-2xl p-8 text-center border border-white/80">
           <div className="text-7xl mb-4 animate-bounce">💖</div>
-          <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-rose-500 mb-6">
-            {finalTitle}
-          </h1>
-          <div className="bg-gradient-to-br from-pink-50/80 to-rose-50/80 rounded-2xl p-6 mb-6 border border-pink-100">
-            <p className="text-lg text-gray-700 leading-relaxed">{finalDescriptionText}</p>
-          </div>
+          <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-rose-500 mb-6">{inviteData?.final_title || "Ура! 🎉"}</h1>
+          <div className="bg-gradient-to-br from-pink-50/80 to-rose-50/80 rounded-2xl p-6 mb-6 border border-pink-100"><p className="text-lg text-gray-700 leading-relaxed">{finalDescriptionText}</p></div>
           <div className="space-y-3 mb-6">
             {selectedFoods.length > 0 && (<div className="bg-white/60 rounded-xl p-3 border border-pink-100"><p className="text-xs text-gray-500 uppercase tracking-wide mb-1">🍽 Твой выбор</p><p className="text-sm font-semibold text-gray-800">{selectedFoods.map((id: string) => { const allOptions = Object.values(ALL_OPTIONS).flat(); const opt = allOptions.find((o: any) => o.id === id); return opt ? `${opt.emoji} ${opt.name}` : id; }).join(", ")}</p></div>)}
             {selectedDate && (<div className="bg-white/60 rounded-xl p-3 border border-pink-100"><p className="text-xs text-gray-500 uppercase tracking-wide mb-1">📅 Дата встречи</p><p className="text-sm font-semibold text-gray-800">{selectedDate} в {selectedTime}</p></div>)}
