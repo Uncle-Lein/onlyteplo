@@ -26,23 +26,43 @@ const NO_ANIMATIONS = [
   { id: "shrink", label: "Уменьшение", emoji: "🔽" },
 ];
 
-const TEXT_PRESETS = [
+// ==== ЗАГОТОВКИ ДЛЯ НЕЁ (приглашаем девушку — тексты в мужском роде) ====
+const TEXT_PRESETS_FOR_HER = [
   "Ты пойдешь со мной на свидание? ❤️",
   "У меня есть к тебе один вопрос... 💌",
   "Хочешь провести вечер вместе? 🌙",
   "Ты свободна в пятницу? 😏",
   "Давай устроим свидание мечты ✨",
 ];
-
-const BUTTON_YES_PRESETS = ["Да", "Конечно 💖", "С радостью!", "Я не против 😊", "Почему бы и нет?"];
-const BUTTON_NO_PRESETS = ["Нет", "Не сейчас 😅", "Может, в другой раз", "Не сегодня 🙈"];
-
-const FINAL_TITLE_PRESETS = [
+const BUTTON_YES_PRESETS_FOR_HER = ["Да", "Конечно 💖", "С радостью!", "Я не против 😊", "Почему бы и нет?"];
+const BUTTON_NO_PRESETS_FOR_HER = ["Нет", "Не сейчас 😅", "Может, в другой раз", "Не сегодня 🙈"];
+const FINAL_TITLE_PRESETS_FOR_HER = [
   "Рад, что ты согласилась!",
   "Ура! Я знал, что ты согласишься 💖",
   "Отлично! Жду нашей встречи ✨",
 ];
-const FINAL_DESC_PRESETS = [
+const FINAL_DESC_PRESETS_FOR_HER = [
+  "Буду ждать тебя {date} в {time}, я приеду за тобой",
+  "Встречаемся {date} в {time}. Не опаздывай! 😉",
+  "{date} в {time} — я уже считаю минуты ⏰",
+];
+
+// ==== ЗАГОТОВКИ ДЛЯ НЕГО (приглашаем парня — тексты в женском роде) ====
+const TEXT_PRESETS_FOR_HIM = [
+  "Ты пойдешь со мной на свидание? ❤️",
+  "У меня есть к тебе один вопрос... 💌",
+  "Хочешь провести вечер вместе? 🌙",
+  "Ты свободен в пятницу? 😏",
+  "Давай устроим свидание мечты ✨",
+];
+const BUTTON_YES_PRESETS_FOR_HIM = ["Да", "Конечно 💖", "С радостью!", "Я не против 😊", "Почему бы и нет?"];
+const BUTTON_NO_PRESETS_FOR_HIM = ["Нет", "Не сейчас 😅", "Может, в другой раз", "Не сегодня 🙈"];
+const FINAL_TITLE_PRESETS_FOR_HIM = [
+  "Рада, что ты согласился!",
+  "Ура! Я знала, что ты согласишься 💖",
+  "Отлично! Жду нашей встречи ✨",
+];
+const FINAL_DESC_PRESETS_FOR_HIM = [
   "Буду ждать тебя {date} в {time}, я приеду за тобой",
   "Встречаемся {date} в {time}. Не опаздывай! 😉",
   "{date} в {time} — я уже считаю минуты ⏰",
@@ -61,12 +81,19 @@ export default function CreatePage() {
   const [buttonNoText, setButtonNoText] = useState("Нет");
   const [selectedCategories, setSelectedCategories] = useState<string[]>(["food"]);
   const [noAnimation, setNoAnimation] = useState("run");
-  const [finalTitle, setFinalTitle] = useState("Рад, что ты согласилась!");
-  const [finalDescription, setFinalDescription] = useState("Буду ждать тебя {date} в {time}, я приеду за тобой");
+  const [finalTitle, setFinalTitle] = useState("");
+  const [finalDescription, setFinalDescription] = useState("");
   const [generatedLink, setGeneratedLink] = useState("");
   const [copied, setCopied] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+
+  // Автоматически подставляем правильные заготовки при смене пола
+  const TEXT_PRESETS = forWhom === "her" ? TEXT_PRESETS_FOR_HER : TEXT_PRESETS_FOR_HIM;
+  const BUTTON_YES_PRESETS = forWhom === "her" ? BUTTON_YES_PRESETS_FOR_HER : BUTTON_YES_PRESETS_FOR_HIM;
+  const BUTTON_NO_PRESETS = forWhom === "her" ? BUTTON_NO_PRESETS_FOR_HER : BUTTON_NO_PRESETS_FOR_HIM;
+  const FINAL_TITLE_PRESETS = forWhom === "her" ? FINAL_TITLE_PRESETS_FOR_HER : FINAL_TITLE_PRESETS_FOR_HIM;
+  const FINAL_DESC_PRESETS = forWhom === "her" ? FINAL_DESC_PRESETS_FOR_HER : FINAL_DESC_PRESETS_FOR_HIM;
 
   const totalSteps = 8;
   const progress = (step / totalSteps) * 100;
@@ -113,7 +140,8 @@ export default function CreatePage() {
       custom_text: customText,
       button_yes_text: buttonYesText, button_no_text: buttonNoText,
       categories: selectedCategories, no_animation: noAnimation,
-      final_title: finalTitle, final_description: finalDescription,
+      final_title: finalTitle || (forWhom === "her" ? "Рад, что ты согласилась!" : "Рада, что ты согласился!"),
+      final_description: finalDescription || "Буду ждать тебя {date} в {time}, я приеду за тобой",
       creator_id: session.user.id,
     });
     setIsLoading(false);
@@ -178,7 +206,15 @@ export default function CreatePage() {
         </div>
 
         <div className="bg-white/70 backdrop-blur-xl rounded-[2rem] shadow-2xl p-8 min-h-[400px] flex flex-col border border-white/80">
-          {step === 1 && (<div className="flex-1 flex flex-col items-center justify-center"><h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Кому адресовано?</h2><div className="flex gap-4 w-full max-w-md"><button onClick={() => setForWhom("her")} className={`flex-1 py-5 px-6 rounded-2xl border-2 font-bold text-lg transition-all duration-300 transform hover:scale-105 ${forWhom === "her" ? "border-pink-500 bg-gradient-to-br from-pink-50 to-rose-50 text-pink-600 shadow-lg" : "border-gray-200 text-gray-600 hover:border-pink-300"}`}><span className="block text-3xl mb-1">👩</span>Для неё</button><button onClick={() => setForWhom("him")} className={`flex-1 py-5 px-6 rounded-2xl border-2 font-bold text-lg transition-all duration-300 transform hover:scale-105 ${forWhom === "him" ? "border-blue-500 bg-gradient-to-br from-blue-50 to-cyan-50 text-blue-600 shadow-lg" : "border-gray-200 text-gray-600 hover:border-blue-300"}`}><span className="block text-3xl mb-1">👨</span>Для него</button></div></div>)}
+          {step === 1 && (
+            <div className="flex-1 flex flex-col items-center justify-center">
+              <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Кому адресовано?</h2>
+              <div className="flex gap-4 w-full max-w-md">
+                <button onClick={() => { setForWhom("her"); setCustomText("Ты пойдешь со мной на свидание?"); }} className={`flex-1 py-5 px-6 rounded-2xl border-2 font-bold text-lg transition-all duration-300 transform hover:scale-105 ${forWhom === "her" ? "border-pink-500 bg-gradient-to-br from-pink-50 to-rose-50 text-pink-600 shadow-lg" : "border-gray-200 text-gray-600 hover:border-pink-300"}`}><span className="block text-3xl mb-1">👩</span>Для неё</button>
+                <button onClick={() => { setForWhom("him"); setCustomText("Ты пойдешь со мной на свидание?"); }} className={`flex-1 py-5 px-6 rounded-2xl border-2 font-bold text-lg transition-all duration-300 transform hover:scale-105 ${forWhom === "him" ? "border-blue-500 bg-gradient-to-br from-blue-50 to-cyan-50 text-blue-600 shadow-lg" : "border-gray-200 text-gray-600 hover:border-blue-300"}`}><span className="block text-3xl mb-1">👨</span>Для него</button>
+              </div>
+            </div>
+          )}
 
           {step === 2 && (<div className="flex-1 flex flex-col items-center justify-center"><h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Как зовут получателя?</h2><input type="text" value={recipientName} onChange={(e) => setRecipientName(e.target.value)} placeholder="Например: Аня" autoFocus className="w-full max-w-md p-5 border-2 border-gray-200 rounded-2xl focus:border-pink-500 focus:ring-4 focus:ring-pink-100 outline-none text-lg text-center transition-all text-gray-900 placeholder:text-gray-400" /></div>)}
 
@@ -283,12 +319,12 @@ export default function CreatePage() {
               <div className="w-full max-w-md space-y-6">
                 <div>
                   <label className="block text-gray-700 font-medium mb-2">Заголовок</label>
-                  <input type="text" value={finalTitle} onChange={(e) => setFinalTitle(e.target.value)} className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-pink-500 outline-none text-lg text-gray-900" />
+                  <input type="text" value={finalTitle} onChange={(e) => setFinalTitle(e.target.value)} placeholder={forWhom === "her" ? "Рад, что ты согласилась!" : "Рада, что ты согласился!"} className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-pink-500 outline-none text-lg text-gray-900 placeholder:text-gray-400" />
                   <PresetChips presets={FINAL_TITLE_PRESETS} onSelect={setFinalTitle} />
                 </div>
                 <div>
                   <label className="block text-gray-700 font-medium mb-2">Описание</label>
-                  <textarea value={finalDescription} onChange={(e) => setFinalDescription(e.target.value)} rows={3} className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-pink-500 outline-none text-lg resize-none text-gray-900" />
+                  <textarea value={finalDescription} onChange={(e) => setFinalDescription(e.target.value)} placeholder="Буду ждать тебя {date} в {time}, я приеду за тобой" rows={3} className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-pink-500 outline-none text-lg resize-none text-gray-900 placeholder:text-gray-400" />
                   <PresetChips presets={FINAL_DESC_PRESETS} onSelect={setFinalDescription} />
                 </div>
               </div>
