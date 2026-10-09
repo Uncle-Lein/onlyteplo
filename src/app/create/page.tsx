@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { supabase, ensureAnonymousSession } from "@/lib/supabase";
-import { IMAGE_COMPONENTS } from "@/components/Images";
+import { IMAGES, CatsImage } from "@/components/Images";
 
 const BACKGROUNDS = [
   { id: "pink", label: "Розовый", class: "from-pink-100 to-white", preview: "bg-pink-100" },
@@ -48,13 +48,6 @@ const FINAL_DESC_PRESETS = [
   "{date} в {time} — я уже считаю минуты ⏰",
 ];
 
-const IMAGES = [
-  { id: "cats", label: "Котики", component: IMAGE_COMPONENTS.cats },
-  { id: "hearts", label: "Сердечки", component: IMAGE_COMPONENTS.hearts },
-  { id: "flowers", label: "Цветы", component: IMAGE_COMPONENTS.flowers },
-  { id: "bunnies", label: "Зайчики", component: IMAGE_COMPONENTS.bunnies },
-];
-
 export default function CreatePage() {
   const [step, setStep] = useState(1);
   const [forWhom, setForWhom] = useState<"her" | "him">("her");
@@ -90,31 +83,19 @@ export default function CreatePage() {
   const uploadFile = async (file: File, type: "image" | "background") => {
     setIsUploading(true);
     try {
-      console.log("📤 Начинаем загрузку:", file.name, "Тип:", file.type, "Размер:", file.size);
-
       const fileExt = file.name.split(".").pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
       const filePath = `${type}/${fileName}`;
 
-      const { data, error: uploadError } = await supabase.storage
-        .from("invites")
-        .upload(filePath, file, { cacheControl: "3600", upsert: false });
-
-      if (uploadError) {
-        console.error("❌ Ошибка Supabase Storage:", uploadError);
-        throw new Error(uploadError.message);
-      }
-
-      console.log("✅ Файл загружен:", data);
+      const { error: uploadError } = await supabase.storage.from("invites").upload(filePath, file);
+      if (uploadError) throw uploadError;
 
       const { data: urlData } = supabase.storage.from("invites").getPublicUrl(filePath);
-      console.log("🔗 Публичный URL:", urlData.publicUrl);
 
       if (type === "image") setCustomImageUrl(urlData.publicUrl);
       else setCustomBackgroundUrl(urlData.publicUrl);
     } catch (err: any) {
-      console.error("💥 Ошибка:", err);
-      alert("Ошибка загрузки: " + (err.message || "Неизвестная ошибка"));
+      alert("Ошибка загрузки: " + err.message);
     } finally {
       setIsUploading(false);
     }
@@ -161,7 +142,7 @@ export default function CreatePage() {
     );
   }
 
-  const SelectedImage = IMAGES.find((i) => i.id === selectedImage)?.component || IMAGE_COMPONENTS.cats;
+  const SelectedImage = IMAGES.find((i) => i.id === selectedImage)?.component || CatsImage;
   const bgClass = BACKGROUNDS.find((b) => b.id === selectedBackground)?.class || "from-pink-100 to-white";
 
   const PresetChips = ({ presets, onSelect }: { presets: string[]; onSelect: (text: string) => void }) => (
@@ -209,7 +190,7 @@ export default function CreatePage() {
                   const Img = img.component;
                   return (
                     <button key={img.id} onClick={() => { setSelectedImage(img.id); setCustomImageUrl(null); }} className={`flex flex-col items-center p-3 rounded-2xl border-2 transition-all duration-300 transform hover:-translate-y-1 ${selectedImage === img.id && !customImageUrl ? "border-pink-500 bg-pink-50 scale-105 shadow-md" : "border-gray-200 hover:border-pink-300"}`}>
-                      <div className="w-full h-14 mb-1"><Img /></div>
+                      <div className="w-full h-16 mb-1"><Img /></div>
                       <span className="text-xs text-gray-600 font-medium">{img.label}</span>
                     </button>
                   );
