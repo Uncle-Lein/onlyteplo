@@ -4,15 +4,17 @@
 export function CatsImage() {
   return (
     <svg viewBox="0 0 200 100" className="w-full h-full">
-      <g transform="translate(30,20)">
-        <ellipse cx="40" cy="60" rx="30" ry="35" fill="#F4A460" />
-        <polygon points="15,30 5,0 30,20" fill="#F4A460" />
-        <polygon points="65,30 75,0 50,20" fill="#F4A460" />
-        <circle cx="30" cy="55" r="4" fill="#000" />
-        <circle cx="50" cy="55" r="4" fill="#000" />
-        <ellipse cx="40" cy="65" rx="5" ry="3" fill="#FF69B4" />
+      {/* Котик 1 (рыжий) */}
+      <g transform="translate(40, 25)">
+        <ellipse cx="40" cy="55" rx="28" ry="32" fill="#F4A460" />
+        <polygon points="17,28 8,2 32,20" fill="#F4A460" />
+        <polygon points="63,28 72,2 48,20" fill="#F4A460" />
+        <circle cx="30" cy="50" r="4" fill="#000" />
+        <circle cx="50" cy="50" r="4" fill="#000" />
+        <ellipse cx="40" cy="60" rx="5" ry="3" fill="#FF69B4" />
       </g>
-      <g transform="translate(100,25)">
+      {/* Котик 2 (белый) */}
+      <g transform="translate(110, 25)">
         <ellipse cx="40" cy="55" rx="28" ry="32" fill="#FFFFFF" stroke="#E0E0E0" strokeWidth="2" />
         <polygon points="17,28 8,2 32,20" fill="#FFFFFF" stroke="#E0E0E0" strokeWidth="2" />
         <polygon points="63,28 72,2 48,20" fill="#FFFFFF" stroke="#E0E0E0" strokeWidth="2" />
@@ -20,6 +22,7 @@ export function CatsImage() {
         <circle cx="50" cy="50" r="4" fill="#000" />
         <ellipse cx="40" cy="60" rx="5" ry="3" fill="#FFB6C1" />
       </g>
+      {/* Сердечко между ними */}
       <path d="M95 70 C95 65, 100 60, 105 65 C110 60, 115 65, 115 70 C115 78, 105 85, 105 85 C105 85, 95 78, 95 70 Z" fill="#FF1493" />
     </svg>
   );
@@ -38,29 +41,29 @@ export function HeartsImage() {
 export function FlowersImage() {
   return (
     <svg viewBox="0 0 200 100" className="w-full h-full">
+      {/* Цветок 1 (розовый) */}
       <g transform="translate(40,20)">
         <line x1="15" y1="40" x2="15" y2="70" stroke="#228B22" strokeWidth="3" />
-        <circle cx="15" cy="30" r="10" fill="#FFD700" />
-        <circle cx="5" cy="25" r="8" fill="#FF69B4" />
-        <circle cx="25" cy="25" r="8" fill="#FF69B4" />
-        <circle cx="5" cy="35" r="8" fill="#FF69B4" />
-        <circle cx="25" cy="35" r="8" fill="#FF69B4" />
+        <ellipse cx="8" cy="28" rx="10" ry="8" fill="#FF69B4" />
+        <ellipse cx="22" cy="28" rx="10" ry="8" fill="#FF69B4" />
+        <ellipse cx="15" cy="22" rx="8" ry="10" fill="#FF69B4" />
+        <circle cx="15" cy="30" r="4" fill="#FFD700" />
       </g>
+      {/* Цветок 2 (ярко-розовый) */}
       <g transform="translate(100,25)">
         <line x1="15" y1="40" x2="15" y2="65" stroke="#228B22" strokeWidth="3" />
-        <circle cx="15" cy="30" r="10" fill="#FFD700" />
-        <circle cx="5" cy="25" r="8" fill="#FF1493" />
-        <circle cx="25" cy="25" r="8" fill="#FF1493" />
-        <circle cx="5" cy="35" r="8" fill="#FF1493" />
-        <circle cx="25" cy="35" r="8" fill="#FF1493" />
+        <ellipse cx="8" cy="28" rx="10" ry="8" fill="#FF1493" />
+        <ellipse cx="22" cy="28" rx="10" ry="8" fill="#FF1493" />
+        <ellipse cx="15" cy="22" rx="8" ry="10" fill="#FF1493" />
+        <circle cx="15" cy="30" r="4" fill="#FFD700" />
       </g>
+      {/* Цветок 3 (фиолетовый) */}
       <g transform="translate(160,20)">
         <line x1="15" y1="40" x2="15" y2="70" stroke="#228B22" strokeWidth="3" />
-        <circle cx="15" cy="30" r="10" fill="#FFD700" />
-        <circle cx="5" cy="25" r="8" fill="#9B59B6" />
-        <circle cx="25" cy="25" r="8" fill="#9B59B6" />
-        <circle cx="5" cy="35" r="8" fill="#9B59B6" />
-        <circle cx="25" cy="35" r="8" fill="#9B59B6" />
+        <ellipse cx="8" cy="28" rx="10" ry="8" fill="#9B59B6" />
+        <ellipse cx="22" cy="28" rx="10" ry="8" fill="#9B59B6" />
+        <ellipse cx="15" cy="22" rx="8" ry="10" fill="#9B59B6" />
+        <circle cx="15" cy="30" r="4" fill="#FFD700" />
       </g>
     </svg>
   );
@@ -69,18 +72,24 @@ export function FlowersImage() {
 export function BunniesImage() {
   return (
     <svg viewBox="0 0 200 100" className="w-full h-full">
+      {/* Зайчик 1 (белый) */}
       <g transform="translate(40,25)">
         <ellipse cx="30" cy="50" rx="22" ry="25" fill="#FFFFFF" stroke="#E0E0E0" strokeWidth="2" />
         <ellipse cx="20" cy="15" rx="6" ry="18" fill="#FFFFFF" stroke="#E0E0E0" strokeWidth="2" />
         <ellipse cx="40" cy="15" rx="6" ry="18" fill="#FFFFFF" stroke="#E0E0E0" strokeWidth="2" />
+        <ellipse cx="20" cy="15" rx="3" ry="14" fill="#FFB6C1" />
+        <ellipse cx="40" cy="15" rx="3" ry="14" fill="#FFB6C1" />
         <circle cx="23" cy="45" r="3" fill="#000" />
         <circle cx="37" cy="45" r="3" fill="#000" />
         <ellipse cx="30" cy="55" rx="4" ry="3" fill="#FFB6C1" />
       </g>
+      {/* Зайчик 2 (розовый) */}
       <g transform="translate(110,30)">
         <ellipse cx="30" cy="45" rx="20" ry="22" fill="#FFE4E1" stroke="#E0E0E0" strokeWidth="2" />
         <ellipse cx="22" cy="15" rx="5" ry="15" fill="#FFE4E1" stroke="#E0E0E0" strokeWidth="2" />
         <ellipse cx="38" cy="15" rx="5" ry="15" fill="#FFE4E1" stroke="#E0E0E0" strokeWidth="2" />
+        <ellipse cx="22" cy="15" rx="2.5" ry="12" fill="#FF69B4" />
+        <ellipse cx="38" cy="15" rx="2.5" ry="12" fill="#FF69B4" />
         <circle cx="23" cy="40" r="3" fill="#000" />
         <circle cx="37" cy="40" r="3" fill="#000" />
         <ellipse cx="30" cy="50" rx="4" ry="3" fill="#FF69B4" />
