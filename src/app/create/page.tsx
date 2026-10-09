@@ -25,7 +25,6 @@ const NO_ANIMATIONS = [
   { id: "shrink", label: "Уменьшение", emoji: "🔽" },
 ];
 
-// Готовые заготовки для заголовка приглашения
 const TEXT_PRESETS = [
   "Ты пойдешь со мной на свидание? ❤️",
   "У меня есть к тебе один вопрос... 💌",
@@ -34,11 +33,9 @@ const TEXT_PRESETS = [
   "Давай устроим свидание мечты ✨",
 ];
 
-// Готовые заготовки для кнопок
 const BUTTON_YES_PRESETS = ["Да", "Конечно 💖", "С радостью!", "Я не против 😊", "Почему бы и нет?"];
 const BUTTON_NO_PRESETS = ["Нет", "Не сейчас 😅", "Может, в другой раз", "Не сегодня 🙈"];
 
-// Готовые заготовки для финального экрана
 const FINAL_TITLE_PRESETS = [
   "Рад, что ты согласилась!",
   "Ура! Я знал, что ты согласишься 💖",
@@ -50,12 +47,11 @@ const FINAL_DESC_PRESETS = [
   "{date} в {time} — я уже считаю минуты ⏰",
 ];
 
-// ============ SVG-КОМПОНЕНТЫ (УЛУЧШЕННЫЕ) ============
+// ============ SVG-КОМПОНЕНТЫ ============
 
 function CatsImage() {
   return (
     <svg viewBox="0 0 200 120" className="w-full h-full">
-      {/* Котик 1 (рыжий) */}
       <g transform="translate(35, 25)">
         <path d="M-5 65 Q-20 50 -10 30 Q-5 25 0 35" stroke="#E8A05C" strokeWidth="7" fill="none" strokeLinecap="round"/>
         <ellipse cx="30" cy="65" rx="32" ry="30" fill="#F4A460"/>
@@ -77,7 +73,6 @@ function CatsImage() {
         <line x1="50" y1="67" x2="40" y2="66" stroke="#2C1810" strokeWidth="1"/>
       </g>
 
-      {/* Котик 2 (белый) */}
       <g transform="translate(105, 30)">
         <path d="M65 60 Q80 50 75 30 Q72 22 65 30" stroke="#E8E0D8" strokeWidth="7" fill="none" strokeLinecap="round"/>
         <ellipse cx="30" cy="60" rx="30" ry="28" fill="#FFFFFF" stroke="#E8E0D8" strokeWidth="1.5"/>
@@ -99,7 +94,6 @@ function CatsImage() {
         <line x1="50" y1="64" x2="40" y2="63" stroke="#2C1810" strokeWidth="1"/>
       </g>
 
-      {/* Сердечко между ними */}
       <path d="M100 75 C100 68, 108 62, 114 68 C120 62, 128 68, 128 75 C128 85, 114 95, 114 95 C114 95, 100 85, 100 75 Z" fill="#FF1493"/>
       <path d="M104 74 C104 71, 108 69, 110 71" stroke="#FFB6C1" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
     </svg>
@@ -422,4 +416,69 @@ export default function CreatePage() {
                 <div>
                   <label className="block text-gray-700 font-medium mb-2">Кнопка «Да»</label>
                   <input type="text" value={buttonYesText} onChange={(e) => setButtonYesText(e.target.value)} className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-pink-500 focus:ring-4 focus:ring-pink-100 outline-none text-lg text-gray-900" />
-                  <PresetChips presets={BUTTON_YES_PRESETS} onSelect={setButton
+                  <PresetChips presets={BUTTON_YES_PRESETS} onSelect={setButtonYesText} />
+                </div>
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">Кнопка «Нет»</label>
+                  <input type="text" value={buttonNoText} onChange={(e) => setButtonNoText(e.target.value)} className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-pink-500 focus:ring-4 focus:ring-pink-100 outline-none text-lg text-gray-900" />
+                  <PresetChips presets={BUTTON_NO_PRESETS} onSelect={setButtonNoText} />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {step === 7 && (<div className="flex-1 flex flex-col items-center justify-center"><h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">Что будем выбирать?</h2><p className="text-gray-500 text-center mb-4 text-sm">Можно выбрать несколько категорий</p><div className="grid grid-cols-2 gap-3 w-full max-w-md mb-8">{CATEGORIES.map((cat) => (<button key={cat.id} onClick={() => toggleCategory(cat.id)} className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all duration-300 transform hover:-translate-y-1 ${selectedCategories.includes(cat.id) ? "border-pink-500 bg-pink-50 scale-105 shadow-md" : "border-gray-200 hover:border-pink-300"}`}><span className="text-2xl">{cat.icon}</span><span className="font-medium text-gray-700">{cat.label}</span></button>))}</div><h3 className="text-lg font-bold text-gray-800 mb-4">Анимация кнопки «Нет»</h3><div className="grid grid-cols-3 gap-3 w-full max-w-md">{NO_ANIMATIONS.map((anim) => (<button key={anim.id} onClick={() => setNoAnimation(anim.id)} className={`p-3 rounded-2xl border-2 text-sm font-medium transition-all duration-300 flex flex-col items-center transform hover:-translate-y-1 ${noAnimation === anim.id ? "border-pink-500 bg-pink-50 shadow-md" : "border-gray-200 hover:border-pink-300"}`}><span className="text-2xl mb-1">{anim.emoji}</span>{anim.label}</button>))}</div></div>)}
+
+          {step === 8 && (
+            <div className="flex-1 flex flex-col items-center justify-center">
+              <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">Финальный экран</h2>
+              <p className="text-gray-500 text-center mb-6 text-sm">Используйте {"{date}"}, {"{time}"} и {"{food}"} для подстановки</p>
+              <div className="w-full max-w-md space-y-6">
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">Заголовок</label>
+                  <input type="text" value={finalTitle} onChange={(e) => setFinalTitle(e.target.value)} className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-pink-500 outline-none text-lg text-gray-900" />
+                  <PresetChips presets={FINAL_TITLE_PRESETS} onSelect={setFinalTitle} />
+                </div>
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">Описание</label>
+                  <textarea value={finalDescription} onChange={(e) => setFinalDescription(e.target.value)} rows={3} className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-pink-500 outline-none text-lg resize-none text-gray-900" />
+                  <PresetChips presets={FINAL_DESC_PRESETS} onSelect={setFinalDescription} />
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="flex gap-4 mt-8">
+            {step > 1 && <button onClick={() => setStep(step - 1)} className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-4 px-6 rounded-full transition-all duration-300 text-lg transform hover:-translate-y-0.5">← Назад</button>}
+            {step < totalSteps ? (
+              <button onClick={() => { if (step === 2 && !recipientName.trim()) { alert("Введите имя!"); return; } setStep(step + 1); }} className="flex-1 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-bold py-4 px-6 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 text-lg">Далее →</button>
+            ) : (
+              <button onClick={handleCreate} disabled={isLoading} className="flex-1 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-bold py-4 px-6 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 text-lg disabled:opacity-50 disabled:transform-none">{isLoading ? "Создаем..." : "Создать приглашение 💖"}</button>
+            )}
+          </div>
+        </div>
+
+        {step >= 3 && (
+          <div className="mt-8">
+            <p className="text-gray-500 text-sm mb-2 text-center">Предпросмотр</p>
+            <div
+              className={`p-6 rounded-2xl border-2 border-gray-200 transition-all duration-500 ${!customBackgroundUrl ? `bg-gradient-to-b ${bgClass}` : ""}`}
+              style={customBackgroundUrl ? { backgroundImage: `url(${customBackgroundUrl})`, backgroundSize: "cover", backgroundPosition: "center" } : {}}
+            >
+              <div className="bg-white/80 rounded-2xl p-4 shadow-md">
+                <div className="w-full h-20 mb-3 flex items-center justify-center">
+                  {customImageUrl ? <img src={customImageUrl} alt="Превью" className="max-h-20 object-contain" /> : <SelectedImage />}
+                </div>
+                <p className="text-center text-sm font-semibold text-gray-700 mb-3">{recipientName ? `${recipientName}, ` : ""}{customText}</p>
+                <div className="flex gap-2 justify-center">
+                  <span className="bg-pink-500 text-white text-xs font-bold px-4 py-2 rounded-full">{buttonYesText}</span>
+                  <span className="bg-gray-300 text-gray-700 text-xs font-bold px-4 py-2 rounded-full">{buttonNoText}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </main>
+  );
+}
