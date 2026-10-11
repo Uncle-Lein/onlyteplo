@@ -20,13 +20,56 @@ const CATEGORIES = [
   { id: "place", label: "Места", icon: "📍" },
 ];
 
+// Стандартные варианты для каждой категории
+const DEFAULT_OPTIONS: Record<string, { id: string; name: string; emoji: string }[]> = {
+  food: [
+    { id: "pizza", name: "Пицца", emoji: "🍕" },
+    { id: "sushi", name: "Суши", emoji: "🍣" },
+    { id: "burger", name: "Бургер", emoji: "🍔" },
+    { id: "pasta", name: "Паста", emoji: "🍝" },
+    { id: "ramen", name: "Рамен", emoji: "🍜" },
+    { id: "rollton", name: "Ролтон", emoji: "🍲" },
+  ],
+  movie: [
+    { id: "comedy", name: "Комедия", emoji: "🎭" },
+    { id: "drama", name: "Мелодрама", emoji: "💔" },
+    { id: "action", name: "Боевик", emoji: "💥" },
+    { id: "cartoon", name: "Мультик", emoji: "🎨" },
+    { id: "sci-fi", name: "Фантастика", emoji: "🚀" },
+    { id: "horror", name: "Ужасы", emoji: "👻" },
+  ],
+  activity: [
+    { id: "walk", name: "Прогулка", emoji: "🚶" },
+    { id: "cinema", name: "Кино", emoji: "🎬" },
+    { id: "bowling", name: "Боулинг", emoji: "🎳" },
+    { id: "museum", name: "Музей", emoji: "🏛️" },
+    { id: "picnic", name: "Пикник", emoji: "🧺" },
+    { id: "quest", name: "Квест", emoji: "🔍" },
+  ],
+  drink: [
+    { id: "coffee", name: "Кофе", emoji: "☕" },
+    { id: "tea", name: "Чай", emoji: "🍵" },
+    { id: "juice", name: "Сок", emoji: "🧃" },
+    { id: "smoothie", name: "Смузи", emoji: "🥤" },
+    { id: "milkshake", name: "Милкшейк", emoji: "🍦" },
+    { id: "lemonade", name: "Лимонад", emoji: "🍋" },
+  ],
+  place: [
+    { id: "restaurant", name: "Ресторан", emoji: "🍽️" },
+    { id: "park", name: "Парк", emoji: "🌳" },
+    { id: "embankment", name: "Набережная", emoji: "🌊" },
+    { id: "rooftop", name: "Крыша", emoji: "🌃" },
+    { id: "cafe", name: "Кафе", emoji: "☕" },
+    { id: "home", name: "Дома", emoji: "🏠" },
+  ],
+};
+
 const NO_ANIMATIONS = [
   { id: "run", label: "Убегание", emoji: "💨", hint: "Кнопка отпрыгивает" },
   { id: "kiss", label: "Поцелуй", emoji: "💋", hint: "Появляется поцелуй" },
   { id: "shrink", label: "Уменьшение", emoji: "📉", hint: "Кнопка сжимается" },
 ];
 
-// ==== ЗАГОТОВКИ ДЛЯ НЕЁ ====
 const TEXT_PRESETS_FOR_HER = [
   "Ты пойдешь со мной на свидание? ❤️",
   "У меня есть к тебе один вопрос... 💌",
@@ -36,18 +79,9 @@ const TEXT_PRESETS_FOR_HER = [
 ];
 const BUTTON_YES_PRESETS_FOR_HER = ["Да", "Конечно 💖", "С радостью!", "Я не против 😊", "Почему бы и нет?"];
 const BUTTON_NO_PRESETS_FOR_HER = ["Нет", "Не сейчас 😅", "Может, в другой раз", "Не сегодня 🙈"];
-const FINAL_TITLE_PRESETS_FOR_HER = [
-  "Рад, что ты согласилась!",
-  "Ура! Я знал, что ты согласишься 💖",
-  "Отлично! Жду нашей встречи ✨",
-];
-const FINAL_DESC_PRESETS_FOR_HER = [
-  "Буду ждать тебя {date} в {time}, я приеду за тобой",
-  "Встречаемся {date} в {time}. Не опаздывай! 😉",
-  "{date} в {time} — я уже считаю минуты ⏰",
-];
+const FINAL_TITLE_PRESETS_FOR_HER = ["Рад, что ты согласилась!", "Ура! Я знал, что ты согласишься 💖", "Отлично! Жду нашей встречи ✨"];
+const FINAL_DESC_PRESETS_FOR_HER = ["Буду ждать тебя {date} в {time}, я приеду за тобой", "Встречаемся {date} в {time}. Не опаздывай! 😉", "{date} в {time} — я уже считаю минуты ⏰"];
 
-// ==== ЗАГОТОВКИ ДЛЯ НЕГО ====
 const TEXT_PRESETS_FOR_HIM = [
   "Ты пойдешь со мной на свидание? ❤️",
   "У меня есть к тебе один вопрос... 💌",
@@ -57,16 +91,8 @@ const TEXT_PRESETS_FOR_HIM = [
 ];
 const BUTTON_YES_PRESETS_FOR_HIM = ["Да", "Конечно 💖", "С радостью!", "Я не против 😊", "Почему бы и нет?"];
 const BUTTON_NO_PRESETS_FOR_HIM = ["Нет", "Не сейчас 😅", "Может, в другой раз", "Не сегодня 🙈"];
-const FINAL_TITLE_PRESETS_FOR_HIM = [
-  "Рада, что ты согласился!",
-  "Ура! Я знала, что ты согласишься 💖",
-  "Отлично! Жду нашей встречи ✨",
-];
-const FINAL_DESC_PRESETS_FOR_HIM = [
-  "Буду ждать тебя {date} в {time}, я приеду за тобой",
-  "Встречаемся {date} в {time}. Не опаздывай! 😉",
-  "{date} в {time} — я уже считаю минуты ⏰",
-];
+const FINAL_TITLE_PRESETS_FOR_HIM = ["Рада, что ты согласился!", "Ура! Я знала, что ты согласишься 💖", "Отлично! Жду нашей встречи ✨"];
+const FINAL_DESC_PRESETS_FOR_HIM = ["Буду ждать тебя {date} в {time}, я приеду за тобой", "Встречаемся {date} в {time}. Не опаздывай! 😉", "{date} в {time} — я уже считаю минуты ⏰"];
 
 export default function CreatePage() {
   const [step, setStep] = useState(1);
@@ -88,6 +114,16 @@ export default function CreatePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
+  // Кастомные варианты для каждой категории
+  const [customOptions, setCustomOptions] = useState<Record<string, { id: string; name: string; emoji: string }[]>>({});
+
+  // Какие категории развёрнуты (для аккордеона)
+  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+
+  // Поле для ввода нового варианта
+  const [newOptionName, setNewOptionName] = useState("");
+  const [newOptionEmoji, setNewOptionEmoji] = useState("✨");
+
   const TEXT_PRESETS = forWhom === "her" ? TEXT_PRESETS_FOR_HER : TEXT_PRESETS_FOR_HIM;
   const BUTTON_YES_PRESETS = forWhom === "her" ? BUTTON_YES_PRESETS_FOR_HER : BUTTON_YES_PRESETS_FOR_HIM;
   const BUTTON_NO_PRESETS = forWhom === "her" ? BUTTON_NO_PRESETS_FOR_HER : BUTTON_NO_PRESETS_FOR_HIM;
@@ -106,18 +142,43 @@ export default function CreatePage() {
     }
   };
 
+  // Получить все варианты для категории (стандартные + кастомные)
+  const getOptionsForCategory = (catId: string) => {
+    const defaults = DEFAULT_OPTIONS[catId] || [];
+    const custom = customOptions[catId] || [];
+    return [...defaults, ...custom];
+  };
+
+  // Добавить свой вариант
+  const addCustomOption = (catId: string) => {
+    if (!newOptionName.trim()) {
+      alert("Введите название варианта!");
+      return;
+    }
+    const newOption = {
+      id: `custom-${Date.now()}`,
+      name: newOptionName,
+      emoji: newOptionEmoji || "✨",
+    };
+    setCustomOptions({ ...customOptions, [catId]: [...(customOptions[catId] || []), newOption] });
+    setNewOptionName("");
+    setNewOptionEmoji("✨");
+  };
+
+  // Удалить кастомный вариант
+  const removeCustomOption = (catId: string, optionId: string) => {
+    setCustomOptions({ ...customOptions, [catId]: (customOptions[catId] || []).filter((o) => o.id !== optionId) });
+  };
+
   const uploadFile = async (file: File, type: "image" | "background") => {
     setIsUploading(true);
     try {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("type", type);
-
       const response = await fetch("/api/upload", { method: "POST", body: formData });
       const data = await response.json();
-
       if (!response.ok) throw new Error(data.error || "Ошибка загрузки");
-
       if (type === "image") setCustomImageUrl(data.url);
       else setCustomBackgroundUrl(data.url);
     } catch (err: any) {
@@ -139,6 +200,7 @@ export default function CreatePage() {
       custom_text: customText,
       button_yes_text: buttonYesText, button_no_text: buttonNoText,
       categories: selectedCategories, no_animation: noAnimation,
+      custom_options: customOptions,
       final_title: finalTitle || (forWhom === "her" ? "Рад, что ты согласилась!" : "Рада, что ты согласился!"),
       final_description: finalDescription || "Буду ждать тебя {date} в {time}, я приеду за тобой",
       creator_id: session.user.id,
@@ -179,11 +241,7 @@ export default function CreatePage() {
   const PresetChips = ({ presets, onSelect }: { presets: string[]; onSelect: (text: string) => void }) => (
     <div className="flex flex-wrap gap-2 mt-3 justify-center">
       {presets.map((preset, i) => (
-        <button
-          key={i}
-          onClick={() => onSelect(preset)}
-          className="text-xs bg-pink-50 hover:bg-pink-100 text-pink-600 border border-pink-200 px-3 py-1.5 rounded-full transition-all hover:scale-105"
-        >
+        <button key={i} onClick={() => onSelect(preset)} className="text-xs bg-pink-50 hover:bg-pink-100 text-pink-600 border border-pink-200 px-3 py-1.5 rounded-full transition-all hover:scale-105">
           {preset.length > 35 ? preset.substring(0, 35) + "..." : preset}
         </button>
       ))}
@@ -194,27 +252,15 @@ export default function CreatePage() {
     const [pos, setPos] = useState({ x: 0, y: 0 });
     const [scale, setScale] = useState(1);
     const [showKiss, setShowKiss] = useState(false);
-
     const trigger = () => {
-      if (type === "run") {
-        setPos({ x: Math.random() * 30 - 15, y: Math.random() * 30 - 15 });
-        setTimeout(() => setPos({ x: 0, y: 0 }), 300);
-      } else if (type === "kiss") {
-        setShowKiss(true);
-        setTimeout(() => setShowKiss(false), 800);
-      } else if (type === "shrink") {
-        setScale(0.5);
-        setTimeout(() => setScale(1), 800);
-      }
+      if (type === "run") { setPos({ x: Math.random() * 30 - 15, y: Math.random() * 30 - 15 }); setTimeout(() => setPos({ x: 0, y: 0 }), 300); }
+      else if (type === "kiss") { setShowKiss(true); setTimeout(() => setShowKiss(false), 800); }
+      else if (type === "shrink") { setScale(0.5); setTimeout(() => setScale(1), 800); }
     };
-
     return (
       <div onMouseEnter={trigger} onTouchStart={trigger} className="relative w-full h-6 flex items-center justify-center">
         {showKiss && <span className="absolute text-xl animate-ping">💋</span>}
-        <div
-          style={{ transform: `translate(${pos.x}px, ${pos.y}px) scale(${scale})`, transition: "transform 0.3s ease-out" }}
-          className="w-8 h-3 bg-gray-400 rounded-full"
-        />
+        <div style={{ transform: `translate(${pos.x}px, ${pos.y}px) scale(${scale})`, transition: "transform 0.3s ease-out" }} className="w-8 h-3 bg-gray-400 rounded-full" />
       </div>
     );
   };
@@ -264,18 +310,10 @@ export default function CreatePage() {
                   );
                 })}
               </div>
-
               <div className="w-full max-w-md">
                 <label className="block text-gray-700 font-medium mb-2 text-center text-sm">Или загрузи свою картинку</label>
                 <label className={`flex flex-col items-center justify-center w-full h-28 border-2 border-dashed rounded-2xl cursor-pointer transition-all hover:border-pink-400 hover:bg-pink-50 ${customImageUrl ? "border-pink-500 bg-pink-50" : "border-gray-300"}`}>
-                  {customImageUrl ? (
-                    <img src={customImageUrl} alt="Своя картинка" className="max-h-24 object-contain" />
-                  ) : (
-                    <>
-                      <span className="text-2xl mb-1">📤</span>
-                      <span className="text-xs text-gray-500">{isUploading ? "Загрузка..." : "Нажми, чтобы загрузить"}</span>
-                    </>
-                  )}
+                  {customImageUrl ? (<img src={customImageUrl} alt="Своя картинка" className="max-h-24 object-contain" />) : (<><span className="text-2xl mb-1">📤</span><span className="text-xs text-gray-500">{isUploading ? "Загрузка..." : "Нажми, чтобы загрузить"}</span></>)}
                   <input type="file" accept="image/*" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) uploadFile(file, "image"); }} disabled={isUploading} />
                 </label>
                 {customImageUrl && <button onClick={() => setCustomImageUrl(null)} className="text-xs text-red-500 mt-1 block mx-auto">Удалить свою картинку</button>}
@@ -294,18 +332,10 @@ export default function CreatePage() {
                   </button>
                 ))}
               </div>
-
               <div className="w-full max-w-md">
                 <label className="block text-gray-700 font-medium mb-2 text-center text-sm">Или загрузи свой фон</label>
                 <label className={`flex flex-col items-center justify-center w-full h-28 border-2 border-dashed rounded-2xl cursor-pointer transition-all hover:border-pink-400 hover:bg-pink-50 ${customBackgroundUrl ? "border-pink-500 bg-pink-50" : "border-gray-300"}`}>
-                  {customBackgroundUrl ? (
-                    <img src={customBackgroundUrl} alt="Свой фон" className="max-h-24 object-cover rounded-lg" />
-                  ) : (
-                    <>
-                      <span className="text-2xl mb-1">🖼️</span>
-                      <span className="text-xs text-gray-500">{isUploading ? "Загрузка..." : "Нажми, чтобы загрузить фон"}</span>
-                    </>
-                  )}
+                  {customBackgroundUrl ? (<img src={customBackgroundUrl} alt="Свой фон" className="max-h-24 object-cover rounded-lg" />) : (<><span className="text-2xl mb-1">🖼️</span><span className="text-xs text-gray-500">{isUploading ? "Загрузка..." : "Нажми, чтобы загрузить фон"}</span></>)}
                   <input type="file" accept="image/*" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) uploadFile(file, "background"); }} disabled={isUploading} />
                 </label>
                 {customBackgroundUrl && <button onClick={() => setCustomBackgroundUrl(null)} className="text-xs text-red-500 mt-1 block mx-auto">Удалить свой фон</button>}
@@ -349,7 +379,7 @@ export default function CreatePage() {
                 Выбрано: <span className="font-bold text-pink-600">{selectedCategories.length}</span> из {CATEGORIES.length}
               </p>
 
-              <div className="grid grid-cols-2 gap-3 w-full max-w-md mb-8">
+              <div className="grid grid-cols-2 gap-3 w-full max-w-md mb-6">
                 {CATEGORIES.map((cat) => {
                   const isSelected = selectedCategories.includes(cat.id);
                   return (
@@ -357,16 +387,12 @@ export default function CreatePage() {
                       key={cat.id}
                       onClick={() => toggleCategory(cat.id)}
                       className={`relative flex items-center gap-3 p-4 rounded-2xl border-2 transition-all duration-300 transform hover:-translate-y-1 ${
-                        isSelected
-                          ? "border-pink-500 bg-pink-50 scale-105 shadow-md"
-                          : "border-gray-200 hover:border-pink-300 bg-white"
+                        isSelected ? "border-pink-500 bg-pink-50 scale-105 shadow-md" : "border-gray-200 hover:border-pink-300 bg-white"
                       }`}
                     >
                       {isSelected && (
                         <div className="absolute top-2 right-2 w-5 h-5 bg-pink-500 rounded-full flex items-center justify-center">
-                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                          </svg>
+                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
                         </div>
                       )}
                       <span className="text-3xl">{cat.icon}</span>
@@ -376,25 +402,110 @@ export default function CreatePage() {
                 })}
               </div>
 
+              {/* Кнопка "Настроить варианты" */}
+              <button
+                onClick={() => setExpandedCategory(expandedCategory ? null : selectedCategories[0])}
+                className="mb-6 text-sm bg-white hover:bg-pink-50 text-pink-600 border border-pink-300 px-4 py-2 rounded-full transition-all"
+              >
+                ⚙️ Настроить варианты для категорий
+              </button>
+
+              {/* Аккордеон с вариантами для каждой выбранной категории */}
+              {expandedCategory && (
+                <div className="w-full max-w-md space-y-3 mb-6">
+                  {selectedCategories.map((catId) => {
+                    const cat = CATEGORIES.find((c) => c.id === catId);
+                    if (!cat) return null;
+                    const isOpen = expandedCategory === catId;
+                    const options = getOptionsForCategory(catId);
+                    return (
+                      <div key={catId} className="bg-white/80 rounded-2xl border-2 border-gray-200 overflow-hidden">
+                        <button
+                          onClick={() => setExpandedCategory(isOpen ? null : catId)}
+                          className="w-full flex items-center justify-between p-4 hover:bg-pink-50 transition-all"
+                        >
+                          <span className="flex items-center gap-2 font-semibold text-gray-700">
+                            <span className="text-xl">{cat.icon}</span> {cat.label}
+                            <span className="text-xs text-gray-400">({options.length})</span>
+                          </span>
+                          <span className="text-gray-400">{isOpen ? "▼" : "▶"}</span>
+                        </button>
+
+                        {isOpen && (
+                          <div className="p-4 border-t-2 border-gray-100">
+                            {/* Список стандартных вариантов */}
+                            <div className="grid grid-cols-2 gap-2 mb-4">
+                              {DEFAULT_OPTIONS[catId]?.map((opt) => (
+                                <div key={opt.id} className="flex items-center gap-2 bg-pink-50 rounded-lg px-3 py-2 text-sm">
+                                  <span>{opt.emoji}</span>
+                                  <span className="text-gray-700">{opt.name}</span>
+                                </div>
+                              ))}
+                            </div>
+
+                            {/* Кастомные варианты */}
+                            {customOptions[catId]?.length > 0 && (
+                              <div className="mb-4">
+                                <p className="text-xs text-gray-500 mb-2">Ваши варианты:</p>
+                                <div className="grid grid-cols-2 gap-2">
+                                  {customOptions[catId].map((opt) => (
+                                    <div key={opt.id} className="flex items-center justify-between gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-2 text-sm">
+                                      <span className="flex items-center gap-1">
+                                        <span>{opt.emoji}</span>
+                                        <span className="text-gray-700">{opt.name}</span>
+                                      </span>
+                                      <button onClick={() => removeCustomOption(catId, opt.id)} className="text-red-400 hover:text-red-600 text-xs">✕</button>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Добавление нового варианта */}
+                            <div className="bg-gray-50 rounded-xl p-3">
+                              <p className="text-xs text-gray-500 mb-2">Добавить свой вариант:</p>
+                              <div className="flex gap-2">
+                                <input
+                                  type="text"
+                                  value={newOptionEmoji}
+                                  onChange={(e) => setNewOptionEmoji(e.target.value)}
+                                  className="w-12 p-2 text-center border-2 border-gray-200 rounded-lg focus:border-pink-500 outline-none text-sm"
+                                  maxLength={2}
+                                />
+                                <input
+                                  type="text"
+                                  value={newOptionName}
+                                  onChange={(e) => setNewOptionName(e.target.value)}
+                                  placeholder="Название..."
+                                  className="flex-1 p-2 border-2 border-gray-200 rounded-lg focus:border-pink-500 outline-none text-sm text-gray-900"
+                                  onKeyDown={(e) => { if (e.key === "Enter") addCustomOption(catId); }}
+                                />
+                                <button
+                                  onClick={() => addCustomOption(catId)}
+                                  className="bg-pink-500 hover:bg-pink-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-all"
+                                >
+                                  +
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
               <h3 className="text-lg font-bold text-gray-800 mb-4 text-center">Анимация кнопки «Нет»</h3>
 
               <div className="grid grid-cols-3 gap-3 w-full max-w-md">
                 {NO_ANIMATIONS.map((anim) => {
                   const isSelected = noAnimation === anim.id;
                   return (
-                    <div
-                      key={anim.id}
-                      className={`p-3 rounded-2xl border-2 transition-all duration-300 flex flex-col items-center gap-1 ${
-                        isSelected
-                          ? "border-pink-500 bg-pink-50 shadow-md"
-                          : "border-gray-200 bg-white hover:border-pink-300"
-                      }`}
-                    >
+                    <div key={anim.id} className={`p-3 rounded-2xl border-2 transition-all duration-300 flex flex-col items-center gap-1 ${isSelected ? "border-pink-500 bg-pink-50 shadow-md" : "border-gray-200 bg-white hover:border-pink-300"}`}>
                       <button onClick={() => setNoAnimation(anim.id)} className="flex flex-col items-center gap-1 w-full">
                         <span className="text-2xl">{anim.emoji}</span>
-                        <span className={`text-sm font-semibold ${isSelected ? "text-pink-700" : "text-gray-700"}`}>
-                          {anim.label}
-                        </span>
+                        <span className={`text-sm font-semibold ${isSelected ? "text-pink-700" : "text-gray-700"}`}>{anim.label}</span>
                       </button>
                       <PreviewAnimation type={anim.id} />
                       <span className="text-[9px] text-gray-400 leading-tight text-center px-1">{anim.hint}</span>
@@ -437,10 +548,7 @@ export default function CreatePage() {
         {step >= 3 && (
           <div className="mt-8">
             <p className="text-gray-500 text-sm mb-2 text-center">Предпросмотр</p>
-            <div
-              className={`p-6 rounded-2xl border-2 border-gray-200 transition-all duration-500 ${!customBackgroundUrl ? `bg-gradient-to-b ${bgClass}` : ""}`}
-              style={customBackgroundUrl ? { backgroundImage: `url(${customBackgroundUrl})`, backgroundSize: "cover", backgroundPosition: "center" } : {}}
-            >
+            <div className={`p-6 rounded-2xl border-2 border-gray-200 transition-all duration-500 ${!customBackgroundUrl ? `bg-gradient-to-b ${bgClass}` : ""}`} style={customBackgroundUrl ? { backgroundImage: `url(${customBackgroundUrl})`, backgroundSize: "cover", backgroundPosition: "center" } : {}}>
               <div className="bg-white/80 rounded-2xl p-4 shadow-md">
                 <div className="w-full h-20 mb-3 flex items-center justify-center">
                   {customImageUrl ? <img src={customImageUrl} alt="Превью" className="max-h-20 object-contain" /> : <SelectedImage />}

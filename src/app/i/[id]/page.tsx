@@ -151,7 +151,12 @@ export default function InvitePage() {
   const useCustomBackground = !!inviteData?.custom_background_url;
   const categories = inviteData?.categories || ["food"];
   const currentCategory = categories[activeCategoryIndex];
-  const currentOptions = ALL_OPTIONS[currentCategory] || [];
+
+  // Стандартные + кастомные варианты
+  const defaultOpts = ALL_OPTIONS[currentCategory] || [];
+  const customOpts = inviteData?.custom_options?.[currentCategory] || [];
+  const currentOptions = [...defaultOpts, ...customOpts];
+
   const categoryInfo = CATEGORY_TITLES[currentCategory] || { title: "Выбери", subtitle: "" };
   const t = TEXTS[inviteData?.for_whom === "him" ? "him" : "her"];
 
@@ -179,10 +184,11 @@ export default function InvitePage() {
           <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-rose-500 mb-6">{inviteData?.final_title || t.finalFallback}</h1>
           <div className="bg-gradient-to-br from-pink-50/80 to-rose-50/80 rounded-2xl p-6 mb-6 border border-pink-100"><p className="text-lg text-gray-700 leading-relaxed">{finalDescriptionText}</p></div>
           <div className="space-y-3 mb-6">
-            {selectedFoods.length > 0 && (<div className="bg-white/60 rounded-xl p-3 border border-pink-100"><p className="text-xs text-gray-500 uppercase tracking-wide mb-1">🍽 Твой выбор</p><p className="text-sm font-semibold text-gray-800">{selectedFoods.map((id: string) => { const allOptions = Object.values(ALL_OPTIONS).flat(); const opt = allOptions.find((o: any) => o.id === id); return opt ? `${opt.emoji} ${opt.name}` : id; }).join(", ")}</p></div>)}
+            {selectedFoods.length > 0 && (<div className="bg-white/60 rounded-xl p-3 border border-pink-100"><p className="text-xs text-gray-500 uppercase tracking-wide mb-1">🍽 Твой выбор</p><p className="text-sm font-semibold text-gray-800">{selectedFoods.map((id: string) => { const allOptions = [...Object.values(ALL_OPTIONS).flat(), ...Object.values(inviteData?.custom_options || {}).flat()]; const opt = allOptions.find((o: any) => o.id === id); return opt ? `${opt.emoji} ${opt.name}` : id; }).join(", ")}</p></div>)}
             {selectedDate && (<div className="bg-white/60 rounded-xl p-3 border border-pink-100"><p className="text-xs text-gray-500 uppercase tracking-wide mb-1">📅 Дата встречи</p><p className="text-sm font-semibold text-gray-800">{selectedDate} в {selectedTime}</p></div>)}
           </div>
           <p className="text-lg text-gray-500 font-medium mb-6">Жду нашей встречи ❤️</p>
+
           {/* Кнопки шаринга */}
           <div className="flex justify-center gap-3">
             <button onClick={() => handleShare("telegram")} className="w-12 h-12 rounded-full bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center transition-all hover:scale-110" title="Поделиться в Telegram">
