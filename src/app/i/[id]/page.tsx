@@ -82,7 +82,6 @@ export default function InvitePage() {
       else if (!data) setDbError("Приглашение не найдено.");
       else {
         setInviteData(data);
-        // Записываем, что приглашение просмотрено
         if (!data.viewed_at) {
           await supabase.from("invites").update({ viewed_at: new Date().toISOString() }).eq("id", inviteId);
         }
@@ -128,11 +127,9 @@ export default function InvitePage() {
     setStep(4);
   };
 
-  // Функция шаринга
   const handleShare = async (platform: string) => {
     const url = window.location.href;
     const text = `Приглашение на свидание: ${url}`;
-
     if (platform === "telegram") {
       window.open(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent("Приглашение на свидание 💌")}`, "_blank");
     } else if (platform === "whatsapp") {
@@ -152,7 +149,6 @@ export default function InvitePage() {
   const categories = inviteData?.categories || ["food"];
   const currentCategory = categories[activeCategoryIndex];
 
-  // Стандартные + кастомные варианты
   const defaultOpts = ALL_OPTIONS[currentCategory] || [];
   const customOpts = inviteData?.custom_options?.[currentCategory] || [];
   const currentOptions = [...defaultOpts, ...customOpts];
@@ -184,12 +180,25 @@ export default function InvitePage() {
           <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-rose-500 mb-6">{inviteData?.final_title || t.finalFallback}</h1>
           <div className="bg-gradient-to-br from-pink-50/80 to-rose-50/80 rounded-2xl p-6 mb-6 border border-pink-100"><p className="text-lg text-gray-700 leading-relaxed">{finalDescriptionText}</p></div>
           <div className="space-y-3 mb-6">
-            {selectedFoods.length > 0 && (<div className="bg-white/60 rounded-xl p-3 border border-pink-100"><p className="text-xs text-gray-500 uppercase tracking-wide mb-1">🍽 Твой выбор</p><p className="text-sm font-semibold text-gray-800">{selectedFoods.map((id: string) => { const allOptions = [...Object.values(ALL_OPTIONS).flat(), ...Object.values(inviteData?.custom_options || {}).flat()]; const opt = allOptions.find((o: any) => o.id === id); return opt ? `${opt.emoji} ${opt.name}` : id; }).join(", ")}</p></div>)}
+            {selectedFoods.length > 0 && (
+              <div className="bg-white/60 rounded-xl p-3 border border-pink-100">
+                <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">🍽 Твой выбор</p>
+                <p className="text-sm font-semibold text-gray-800">
+                  {selectedFoods.map((id: string) => {
+                    const allOptions = [
+                      ...Object.values(ALL_OPTIONS).flat(),
+                      ...Object.values(inviteData?.custom_options || {}).flat(),
+                    ] as { id: string; name: string; emoji: string }[];
+                    const opt = allOptions.find((o) => o.id === id);
+                    return opt ? `${opt.emoji} ${opt.name}` : id;
+                  }).join(", ")}
+                </p>
+              </div>
+            )}
             {selectedDate && (<div className="bg-white/60 rounded-xl p-3 border border-pink-100"><p className="text-xs text-gray-500 uppercase tracking-wide mb-1">📅 Дата встречи</p><p className="text-sm font-semibold text-gray-800">{selectedDate} в {selectedTime}</p></div>)}
           </div>
           <p className="text-lg text-gray-500 font-medium mb-6">Жду нашей встречи ❤️</p>
 
-          {/* Кнопки шаринга */}
           <div className="flex justify-center gap-3">
             <button onClick={() => handleShare("telegram")} className="w-12 h-12 rounded-full bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center transition-all hover:scale-110" title="Поделиться в Telegram">
               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.26-1.91.178-.184 3.266-2.992 3.326-3.25.007-.03.014-.14-.052-.198-.066-.058-.162-.038-.232-.022-.1.022-1.69 1.07-4.77 3.15-.45.31-.86.46-1.22.45-.4-.01-1.17-.23-1.74-.41-.7-.23-1.26-.35-1.21-.74.02-.2.3-.4.84-.61 3.28-1.43 5.47-2.37 6.56-2.83 3.12-1.3 3.77-1.53 4.19-1.53z"/></svg>
