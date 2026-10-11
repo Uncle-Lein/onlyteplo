@@ -20,7 +20,6 @@ const CATEGORIES = [
   { id: "place", label: "Места", icon: "📍" },
 ];
 
-// Стандартные варианты для каждой категории
 const DEFAULT_OPTIONS: Record<string, { id: string; name: string; emoji: string }[]> = {
   food: [
     { id: "pizza", name: "Пицца", emoji: "🍕" },
@@ -114,13 +113,16 @@ export default function CreatePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
-  // Кастомные варианты для каждой категории
+  // Кастомные варианты
   const [customOptions, setCustomOptions] = useState<Record<string, { id: string; name: string; emoji: string }[]>>({});
 
-  // Какие категории развёрнуты (для аккордеона)
+  // Скрытые стандартные варианты (по категориям)
+  const [hiddenDefaults, setHiddenDefaults] = useState<Record<string, string[]>>({});
+
+  // Развёрнутая категория
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
 
-  // Поле для ввода нового варианта
+  // Поля ввода нового варианта
   const [newOptionName, setNewOptionName] = useState("");
   const [newOptionEmoji, setNewOptionEmoji] = useState("✨");
 
@@ -142,30 +144,32 @@ export default function CreatePage() {
     }
   };
 
-  // Получить все варианты для категории (стандартные + кастомные)
-  const getOptionsForCategory = (catId: string) => {
-    const defaults = DEFAULT_OPTIONS[catId] || [];
-    const custom = customOptions[catId] || [];
-    return [...defaults, ...custom];
+  // Получить видимые стандартные варианты (без скрытых)
+  const getVisibleDefaults = (catId: string) => {
+    const hidden = hiddenDefaults[catId] || [];
+    return (DEFAULT_OPTIONS[catId] || []).filter((opt) => !hidden.includes(opt.id));
+  };
+
+  // Скрыть стандартный вариант
+  const hideDefaultOption = (catId: string, optionId: string) => {
+    setHiddenDefaults({ ...hiddenDefaults, [catId]: [...(hiddenDefaults[catId] || []), optionId] });
+  };
+
+  // Вернуть скрытый вариант
+  const restoreDefaultOption = (catId: string, optionId: string) => {
+    setHiddenDefaults({ ...hiddenDefaults, [catId]: (hiddenDefaults[catId] || []).filter((id) => id !== optionId) });
   };
 
   // Добавить свой вариант
   const addCustomOption = (catId: string) => {
-    if (!newOptionName.trim()) {
-      alert("Введите название варианта!");
-      return;
-    }
-    const newOption = {
-      id: `custom-${Date.now()}`,
-      name: newOptionName,
-      emoji: newOptionEmoji || "✨",
-    };
+    if (!newOptionName.trim()) { alert("Введите название варианта!"); return; }
+    const newOption = { id: `custom-${Date.now()}`, name: newOptionName, emoji: newOptionEmoji || "✨" };
     setCustomOptions({ ...customOptions, [catId]: [...(customOptions[catId] || []), newOption] });
     setNewOptionName("");
     setNewOptionEmoji("✨");
   };
 
-  // Удалить кастомный вариант
+  // Удалить свой вариант
   const removeCustomOption = (catId: string, optionId: string) => {
     setCustomOptions({ ...customOptions, [catId]: (customOptions[catId] || []).filter((o) => o.id !== optionId) });
   };
@@ -201,6 +205,7 @@ export default function CreatePage() {
       button_yes_text: buttonYesText, button_no_text: buttonNoText,
       categories: selectedCategories, no_animation: noAnimation,
       custom_options: customOptions,
+      hidden_defaults: hiddenDefaults,
       final_title: finalTitle || (forWhom === "her" ? "Рад, что ты согласилась!" : "Рада, что ты согласился!"),
       final_description: finalDescription || "Буду ждать тебя {date} в {time}, я приеду за тобой",
       creator_id: session.user.id,
@@ -220,15 +225,44 @@ export default function CreatePage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleShare = async (platform: string) => {
+    const url = generatedLink;
+    const text = `Приглашение на свидание: ${url}`;
+    if (platform === "telegram") {
+      window.open(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent("Приглашение на свидание 💌")}`, "_blank");
+    } else if (platform === "whatsapp") {
+      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
+    } else if (platform === "vk") {
+      window.open(`https://vk.com/share.php?url=${encodeURIComponent(url)}`, "_blank");
+    }
+  };
+
   if (generatedLink) {
     return (
-      <main className="min-h-screen bg-gradient-to-b from-pink-100 to-white flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white rounded-3xl shadow-xl p-8 text-center">
+      <main className="min-h-screen bg-gradient-to-br from-pink-100 via-rose-50 to-blue-50 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white/90 backdrop-blur-xl rounded-[2rem] shadow-2xl p-8 text-center border border-white/80">
           <div className="text-6xl mb-6">🎉</div>
           <h1 className="text-2xl font-bold text-gray-800 mb-2">Приглашение создано!</h1>
           <p className="text-gray-500 mb-6">Отправьте эту ссылку получателю:</p>
           <div className="bg-gray-100 p-4 rounded-xl mb-4 break-all text-sm text-gray-700 border-2 border-dashed border-gray-300">{generatedLink}</div>
-          <button onClick={copyToClipboard} className={`w-full font-bold py-4 px-6 rounded-full transition-all duration-300 shadow-lg text-lg mb-4 ${copied ? "bg-green-500 text-white" : "bg-pink-500 hover:bg-pink-600 text-white"}`}>{copied ? "✅ Скопировано!" : "📋 Скопировать ссылку"}</button>
+
+          {/* Кнопка "Скопировать ссылку" */}
+          <button onClick={copyToClipboard} className={`w-full font-bold py-4 px-6 rounded-full transition-all duration-300 shadow-lg text-lg mb-4 ${copied ? "bg-green-500 text-white" : "bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white"}`}>
+            {copied ? "✅ Скопировано!" : "📋 Скопировать ссылку"}
+          </button>
+
+          {/* Кнопки шаринга */}
+          <p className="text-xs text-gray-500 mb-3">Или поделитесь:</p>
+          <div className="flex justify-center gap-3 mb-6">
+            <button onClick={() => handleShare("telegram")} className="w-12 h-12 rounded-full bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center transition-all hover:scale-110" title="Telegram">
+              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.26-1.91.178-.184 3.266-2.992 3.326-3.25.007-.03.014-.14-.052-.198-.066-.058-.162-.038-.232-.022-.1.022-1.69 1.07-4.77 3.15-.45.31-.86.46-1.22.45-.4-.01-1.17-.23-1.74-.41-.7-.23-1.26-.35-1.21-.74.02-.2.3-.4.84-.61 3.28-1.43 5.47-2.37 6.56-2.83 3.12-1.3 3.77-1.53 4.19-1.53z"/></svg>
+            </button>
+            <button onClick={() => handleShare("whatsapp")} className="w-12 h-12 rounded-full bg-green-500 hover:bg-green-600 text-white flex items-center justify-center transition-all hover:scale-110" title="WhatsApp">
+              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+            </button>
+            <button onClick={() => handleShare("vk")} className="w-12 h-12 rounded-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center transition-all hover:scale-110 font-bold" title="VK">VK</button>
+          </div>
+
           <Link href="/" className="text-gray-500 hover:text-pink-500 font-medium">← Вернуться на главную</Link>
         </div>
       </main>
@@ -402,7 +436,6 @@ export default function CreatePage() {
                 })}
               </div>
 
-              {/* Кнопка "Настроить варианты" */}
               <button
                 onClick={() => setExpandedCategory(expandedCategory ? null : selectedCategories[0])}
                 className="mb-6 text-sm bg-white hover:bg-pink-50 text-pink-600 border border-pink-300 px-4 py-2 rounded-full transition-all"
@@ -410,14 +443,15 @@ export default function CreatePage() {
                 ⚙️ Настроить варианты для категорий
               </button>
 
-              {/* Аккордеон с вариантами для каждой выбранной категории */}
               {expandedCategory && (
                 <div className="w-full max-w-md space-y-3 mb-6">
                   {selectedCategories.map((catId) => {
                     const cat = CATEGORIES.find((c) => c.id === catId);
                     if (!cat) return null;
                     const isOpen = expandedCategory === catId;
-                    const options = getOptionsForCategory(catId);
+                    const visibleDefaults = getVisibleDefaults(catId);
+                    const hidden = hiddenDefaults[catId] || [];
+                    const custom = customOptions[catId] || [];
                     return (
                       <div key={catId} className="bg-white/80 rounded-2xl border-2 border-gray-200 overflow-hidden">
                         <button
@@ -426,34 +460,47 @@ export default function CreatePage() {
                         >
                           <span className="flex items-center gap-2 font-semibold text-gray-700">
                             <span className="text-xl">{cat.icon}</span> {cat.label}
-                            <span className="text-xs text-gray-400">({options.length})</span>
+                            <span className="text-xs text-gray-400">({visibleDefaults.length + custom.length})</span>
                           </span>
                           <span className="text-gray-400">{isOpen ? "▼" : "▶"}</span>
                         </button>
 
                         {isOpen && (
                           <div className="p-4 border-t-2 border-gray-100">
-                            {/* Список стандартных вариантов */}
+                            <p className="text-xs text-gray-500 mb-2">Стандартные варианты:</p>
                             <div className="grid grid-cols-2 gap-2 mb-4">
-                              {DEFAULT_OPTIONS[catId]?.map((opt) => (
-                                <div key={opt.id} className="flex items-center gap-2 bg-pink-50 rounded-lg px-3 py-2 text-sm">
-                                  <span>{opt.emoji}</span>
-                                  <span className="text-gray-700">{opt.name}</span>
+                              {visibleDefaults.map((opt) => (
+                                <div key={opt.id} className="flex items-center justify-between gap-2 bg-pink-50 rounded-lg px-3 py-2 text-sm">
+                                  <span className="flex items-center gap-1"><span>{opt.emoji}</span><span className="text-gray-700">{opt.name}</span></span>
+                                  <button onClick={() => hideDefaultOption(catId, opt.id)} className="text-red-400 hover:text-red-600 text-xs">✕</button>
                                 </div>
                               ))}
                             </div>
 
-                            {/* Кастомные варианты */}
-                            {customOptions[catId]?.length > 0 && (
+                            {hidden.length > 0 && (
+                              <div className="mb-4">
+                                <p className="text-xs text-gray-500 mb-2">Скрытые (нажмите, чтобы вернуть):</p>
+                                <div className="flex flex-wrap gap-2">
+                                  {hidden.map((id) => {
+                                    const opt = DEFAULT_OPTIONS[catId]?.find((o) => o.id === id);
+                                    if (!opt) return null;
+                                    return (
+                                      <button key={id} onClick={() => restoreDefaultOption(catId, id)} className="text-xs bg-gray-100 text-gray-500 border border-gray-200 px-3 py-1 rounded-full hover:bg-green-50 hover:text-green-600">
+                                        + {opt.emoji} {opt.name}
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
+
+                            {custom.length > 0 && (
                               <div className="mb-4">
                                 <p className="text-xs text-gray-500 mb-2">Ваши варианты:</p>
                                 <div className="grid grid-cols-2 gap-2">
-                                  {customOptions[catId].map((opt) => (
+                                  {custom.map((opt) => (
                                     <div key={opt.id} className="flex items-center justify-between gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-2 text-sm">
-                                      <span className="flex items-center gap-1">
-                                        <span>{opt.emoji}</span>
-                                        <span className="text-gray-700">{opt.name}</span>
-                                      </span>
+                                      <span className="flex items-center gap-1"><span>{opt.emoji}</span><span className="text-gray-700">{opt.name}</span></span>
                                       <button onClick={() => removeCustomOption(catId, opt.id)} className="text-red-400 hover:text-red-600 text-xs">✕</button>
                                     </div>
                                   ))}
@@ -461,7 +508,6 @@ export default function CreatePage() {
                               </div>
                             )}
 
-                            {/* Добавление нового варианта */}
                             <div className="bg-gray-50 rounded-xl p-3">
                               <p className="text-xs text-gray-500 mb-2">Добавить свой вариант:</p>
                               <div className="flex gap-2">
@@ -469,7 +515,7 @@ export default function CreatePage() {
                                   type="text"
                                   value={newOptionEmoji}
                                   onChange={(e) => setNewOptionEmoji(e.target.value)}
-                                  className="w-12 p-2 text-center border-2 border-gray-200 rounded-lg focus:border-pink-500 outline-none text-sm"
+                                  className="w-14 p-2 text-center border-2 border-gray-200 rounded-lg focus:border-pink-500 outline-none text-sm"
                                   maxLength={2}
                                 />
                                 <input
@@ -477,12 +523,12 @@ export default function CreatePage() {
                                   value={newOptionName}
                                   onChange={(e) => setNewOptionName(e.target.value)}
                                   placeholder="Название..."
-                                  className="flex-1 p-2 border-2 border-gray-200 rounded-lg focus:border-pink-500 outline-none text-sm text-gray-900"
+                                  className="flex-1 min-w-0 p-2 border-2 border-gray-200 rounded-lg focus:border-pink-500 outline-none text-sm text-gray-900"
                                   onKeyDown={(e) => { if (e.key === "Enter") addCustomOption(catId); }}
                                 />
                                 <button
                                   onClick={() => addCustomOption(catId)}
-                                  className="bg-pink-500 hover:bg-pink-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-all"
+                                  className="bg-pink-500 hover:bg-pink-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-all flex-shrink-0"
                                 >
                                   +
                                 </button>
