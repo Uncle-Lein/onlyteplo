@@ -107,9 +107,11 @@ export default function CreatePage() {
   };
 
   // ⬇️ ЗАГРУЗКА ЧЕРЕЗ НАШ API (не напрямую в Supabase) ⬇️
-  const uploadFile = async (file: File, type: "image" | "background") => {
+    const uploadFile = async (file: File, type: "image" | "background") => {
     setIsUploading(true);
     try {
+      console.log("📤 Отправляем файл:", file.name, file.size, "байт");
+
       const formData = new FormData();
       formData.append("file", file);
       formData.append("type", type);
@@ -119,15 +121,21 @@ export default function CreatePage() {
         body: formData,
       });
 
+      console.log("📥 Ответ сервера:", response.status, response.statusText);
+
       const data = await response.json();
+      console.log("📦 Данные:", data);
 
       if (!response.ok) {
         throw new Error(data.error || "Ошибка загрузки");
       }
 
+      console.log("✅ URL картинки:", data.url);
+
       if (type === "image") setCustomImageUrl(data.url);
       else setCustomBackgroundUrl(data.url);
     } catch (err: any) {
+      console.error("❌ Ошибка:", err);
       alert("Ошибка загрузки: " + err.message);
     } finally {
       setIsUploading(false);
@@ -138,7 +146,7 @@ export default function CreatePage() {
     setIsLoading(true);
     const session = await ensureAnonymousSession();
     if (!session) { alert("Ошибка авторизации."); setIsLoading(false); return; }
-    const inviteId = Math.random().toString(36).substring(2, 10);
+    const inviteId = `${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 8)}`;
     const { error } = await supabase.from("invites").insert({
       id: inviteId, for_whom: forWhom, recipient_name: recipientName,
       image: selectedImage, custom_image_url: customImageUrl,
@@ -151,7 +159,14 @@ export default function CreatePage() {
       creator_id: session.user.id,
     });
     setIsLoading(false);
-    if (error) { alert("Ошибка сохранения: " + error.message); return; }
+    if (error) {
+  if (error.message.includes("duplicate key")) {
+    alert("Произошла ошибка при создании ссылки. Попробуйте ещё раз.");
+  } else {
+    alert("Ошибка сохранения: " + error.message);
+  }
+  return;
+}
     setGeneratedLink(`${window.location.origin}/i/${inviteId}`);
   };
 
