@@ -126,6 +126,37 @@ export default function LandingPage() {
           </div>
         </div>
 
+        {/* Блок FAQ */}
+        <div className="bg-white/80 backdrop-blur-md rounded-[2rem] shadow-xl p-8 md:p-10 border border-white/60 mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Частые вопросы</h2>
+          <div className="space-y-4">
+            <details className="bg-pink-50/50 rounded-xl p-4 cursor-pointer">
+              <summary className="font-semibold text-gray-800">Это бесплатно?</summary>
+              <p className="text-gray-600 mt-2 text-sm">Да, создание приглашения полностью бесплатно. Мы пока не берём денег за использование сервиса.</p>
+            </details>
+            <details className="bg-pink-50/50 rounded-xl p-4 cursor-pointer">
+              <summary className="font-semibold text-gray-800">Сколько живёт приглашение?</summary>
+              <p className="text-gray-600 mt-2 text-sm">Приглашение хранится 30 дней, потом удаляется автоматически.</p>
+            </details>
+            <details className="bg-pink-50/50 rounded-xl p-4 cursor-pointer">
+              <summary className="font-semibold text-gray-800">Нужно ли регистрироваться получателю?</summary>
+              <p className="text-gray-600 mt-2 text-sm">Нет. Получатель просто открывает ссылку в браузере и отвечает. Никакой регистрации.</p>
+            </details>
+            <details className="bg-pink-50/50 rounded-xl p-4 cursor-pointer">
+              <summary className="font-semibold text-gray-800">Можно ли загрузить свою картинку?</summary>
+              <p className="text-gray-600 mt-2 text-sm">Да, при создании приглашения можно загрузить свою картинку и свой фон.</p>
+            </details>
+            <details className="bg-pink-50/50 rounded-xl p-4 cursor-pointer">
+              <summary className="font-semibold text-gray-800">Кто увидит мой ответ?</summary>
+              <p className="text-gray-600 mt-2 text-sm">Только вы. Ответы защищены — их видит только создатель приглашения.</p>
+            </details>
+            <details className="bg-pink-50/50 rounded-xl p-4 cursor-pointer">
+              <summary className="font-semibold text-gray-800">Можно ли удалить приглашение?</summary>
+              <p className="text-gray-600 mt-2 text-sm">Да, на странице «Мои ответы» можно удалить любое приглашение вместе с ответом.</p>
+            </details>
+          </div>
+        </div>
+
         {/* Футер */}
         <div className="text-center text-sm text-gray-500 py-6">
           <p className="mb-2">© 2026 date-with-me.online</p>
