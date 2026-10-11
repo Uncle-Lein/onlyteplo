@@ -21,12 +21,12 @@ const CATEGORIES = [
 ];
 
 const NO_ANIMATIONS = [
-  { id: "run", label: "Убегание", emoji: "🏃" },
-  { id: "kiss", label: "Поцелуй", emoji: "💋" },
-  { id: "shrink", label: "Уменьшение", emoji: "🔽" },
+  { id: "run", label: "Убегание", emoji: "💨", hint: "Кнопка отпрыгивает" },
+  { id: "kiss", label: "Поцелуй", emoji: "💋", hint: "Появляется поцелуй" },
+  { id: "shrink", label: "Уменьшение", emoji: "📉", hint: "Кнопка сжимается" },
 ];
 
-// ==== ЗАГОТОВКИ ДЛЯ НЕЁ (приглашаем девушку — тексты в мужском роде) ====
+// ==== ЗАГОТОВКИ ДЛЯ НЕЁ ====
 const TEXT_PRESETS_FOR_HER = [
   "Ты пойдешь со мной на свидание? ❤️",
   "У меня есть к тебе один вопрос... 💌",
@@ -47,7 +47,7 @@ const FINAL_DESC_PRESETS_FOR_HER = [
   "{date} в {time} — я уже считаю минуты ⏰",
 ];
 
-// ==== ЗАГОТОВКИ ДЛЯ НЕГО (приглашаем парня — тексты в женском роде) ====
+// ==== ЗАГОТОВКИ ДЛЯ НЕГО ====
 const TEXT_PRESETS_FOR_HIM = [
   "Ты пойдешь со мной на свидание? ❤️",
   "У меня есть к тебе один вопрос... 💌",
@@ -106,36 +106,21 @@ export default function CreatePage() {
     }
   };
 
-  // ⬇️ ЗАГРУЗКА ЧЕРЕЗ НАШ API (не напрямую в Supabase) ⬇️
-    const uploadFile = async (file: File, type: "image" | "background") => {
+  const uploadFile = async (file: File, type: "image" | "background") => {
     setIsUploading(true);
     try {
-      console.log("📤 Отправляем файл:", file.name, file.size, "байт");
-
       const formData = new FormData();
       formData.append("file", file);
       formData.append("type", type);
 
-      const response = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      console.log("📥 Ответ сервера:", response.status, response.statusText);
-
+      const response = await fetch("/api/upload", { method: "POST", body: formData });
       const data = await response.json();
-      console.log("📦 Данные:", data);
 
-      if (!response.ok) {
-        throw new Error(data.error || "Ошибка загрузки");
-      }
-
-      console.log("✅ URL картинки:", data.url);
+      if (!response.ok) throw new Error(data.error || "Ошибка загрузки");
 
       if (type === "image") setCustomImageUrl(data.url);
       else setCustomBackgroundUrl(data.url);
     } catch (err: any) {
-      console.error("❌ Ошибка:", err);
       alert("Ошибка загрузки: " + err.message);
     } finally {
       setIsUploading(false);
@@ -160,13 +145,10 @@ export default function CreatePage() {
     });
     setIsLoading(false);
     if (error) {
-  if (error.message.includes("duplicate key")) {
-    alert("Произошла ошибка при создании ссылки. Попробуйте ещё раз.");
-  } else {
-    alert("Ошибка сохранения: " + error.message);
-  }
-  return;
-}
+      if (error.message.includes("duplicate key")) alert("Ошибка при создании ссылки. Попробуйте ещё раз.");
+      else alert("Ошибка сохранения: " + error.message);
+      return;
+    }
     setGeneratedLink(`${window.location.origin}/i/${inviteId}`);
   };
 
@@ -207,6 +189,35 @@ export default function CreatePage() {
       ))}
     </div>
   );
+
+  const PreviewAnimation = ({ type }: { type: string }) => {
+    const [pos, setPos] = useState({ x: 0, y: 0 });
+    const [scale, setScale] = useState(1);
+    const [showKiss, setShowKiss] = useState(false);
+
+    const trigger = () => {
+      if (type === "run") {
+        setPos({ x: Math.random() * 30 - 15, y: Math.random() * 30 - 15 });
+        setTimeout(() => setPos({ x: 0, y: 0 }), 300);
+      } else if (type === "kiss") {
+        setShowKiss(true);
+        setTimeout(() => setShowKiss(false), 800);
+      } else if (type === "shrink") {
+        setScale(0.5);
+        setTimeout(() => setScale(1), 800);
+      }
+    };
+
+    return (
+      <div onMouseEnter={trigger} onTouchStart={trigger} className="relative w-full h-6 flex items-center justify-center">
+        {showKiss && <span className="absolute text-xl animate-ping">💋</span>}
+        <div
+          style={{ transform: `translate(${pos.x}px, ${pos.y}px) scale(${scale})`, transition: "transform 0.3s ease-out" }}
+          className="w-8 h-3 bg-gray-400 rounded-full"
+        />
+      </div>
+    );
+  };
 
   return (
     <main className="relative min-h-screen bg-gradient-to-br from-pink-100 via-rose-50 to-blue-50 overflow-hidden flex items-center justify-center p-4 py-10">
@@ -331,7 +342,68 @@ export default function CreatePage() {
             </div>
           )}
 
-          {step === 7 && (<div className="flex-1 flex flex-col items-center justify-center"><h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">Что будем выбирать?</h2><p className="text-gray-500 text-center mb-4 text-sm">Можно выбрать несколько категорий</p><div className="grid grid-cols-2 gap-3 w-full max-w-md mb-8">{CATEGORIES.map((cat) => (<button key={cat.id} onClick={() => toggleCategory(cat.id)} className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all duration-300 transform hover:-translate-y-1 ${selectedCategories.includes(cat.id) ? "border-pink-500 bg-pink-50 scale-105 shadow-md" : "border-gray-200 hover:border-pink-300"}`}><span className="text-2xl">{cat.icon}</span><span className="font-medium text-gray-700">{cat.label}</span></button>))}</div><h3 className="text-lg font-bold text-gray-800 mb-4">Анимация кнопки «Нет»</h3><div className="grid grid-cols-3 gap-3 w-full max-w-md">{NO_ANIMATIONS.map((anim) => (<button key={anim.id} onClick={() => setNoAnimation(anim.id)} className={`p-3 rounded-2xl border-2 text-sm font-medium transition-all duration-300 flex flex-col items-center transform hover:-translate-y-1 ${noAnimation === anim.id ? "border-pink-500 bg-pink-50 shadow-md" : "border-gray-200 hover:border-pink-300"}`}><span className="text-2xl mb-1">{anim.emoji}</span>{anim.label}</button>))}</div></div>)}
+          {step === 7 && (
+            <div className="flex-1 flex flex-col items-center justify-center">
+              <h2 className="text-3xl font-bold text-gray-900 mb-2 text-center">Что будем выбирать?</h2>
+              <p className="text-gray-500 text-center mb-6 text-sm">
+                Выбрано: <span className="font-bold text-pink-600">{selectedCategories.length}</span> из {CATEGORIES.length}
+              </p>
+
+              <div className="grid grid-cols-2 gap-3 w-full max-w-md mb-8">
+                {CATEGORIES.map((cat) => {
+                  const isSelected = selectedCategories.includes(cat.id);
+                  return (
+                    <button
+                      key={cat.id}
+                      onClick={() => toggleCategory(cat.id)}
+                      className={`relative flex items-center gap-3 p-4 rounded-2xl border-2 transition-all duration-300 transform hover:-translate-y-1 ${
+                        isSelected
+                          ? "border-pink-500 bg-pink-50 scale-105 shadow-md"
+                          : "border-gray-200 hover:border-pink-300 bg-white"
+                      }`}
+                    >
+                      {isSelected && (
+                        <div className="absolute top-2 right-2 w-5 h-5 bg-pink-500 rounded-full flex items-center justify-center">
+                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                          </svg>
+                        </div>
+                      )}
+                      <span className="text-3xl">{cat.icon}</span>
+                      <span className={`font-semibold ${isSelected ? "text-pink-700" : "text-gray-700"}`}>{cat.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <h3 className="text-lg font-bold text-gray-800 mb-4 text-center">Анимация кнопки «Нет»</h3>
+
+              <div className="grid grid-cols-3 gap-3 w-full max-w-md">
+                {NO_ANIMATIONS.map((anim) => {
+                  const isSelected = noAnimation === anim.id;
+                  return (
+                    <div
+                      key={anim.id}
+                      className={`p-3 rounded-2xl border-2 transition-all duration-300 flex flex-col items-center gap-1 ${
+                        isSelected
+                          ? "border-pink-500 bg-pink-50 shadow-md"
+                          : "border-gray-200 bg-white hover:border-pink-300"
+                      }`}
+                    >
+                      <button onClick={() => setNoAnimation(anim.id)} className="flex flex-col items-center gap-1 w-full">
+                        <span className="text-2xl">{anim.emoji}</span>
+                        <span className={`text-sm font-semibold ${isSelected ? "text-pink-700" : "text-gray-700"}`}>
+                          {anim.label}
+                        </span>
+                      </button>
+                      <PreviewAnimation type={anim.id} />
+                      <span className="text-[9px] text-gray-400 leading-tight text-center px-1">{anim.hint}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {step === 8 && (
             <div className="flex-1 flex flex-col items-center justify-center">
