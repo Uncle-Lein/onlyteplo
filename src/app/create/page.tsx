@@ -88,7 +88,6 @@ export default function CreatePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
-  // Автоматически подставляем правильные заготовки при смене пола
   const TEXT_PRESETS = forWhom === "her" ? TEXT_PRESETS_FOR_HER : TEXT_PRESETS_FOR_HIM;
   const BUTTON_YES_PRESETS = forWhom === "her" ? BUTTON_YES_PRESETS_FOR_HER : BUTTON_YES_PRESETS_FOR_HIM;
   const BUTTON_NO_PRESETS = forWhom === "her" ? BUTTON_NO_PRESETS_FOR_HER : BUTTON_NO_PRESETS_FOR_HIM;
@@ -107,20 +106,27 @@ export default function CreatePage() {
     }
   };
 
+  // ⬇️ ЗАГРУЗКА ЧЕРЕЗ НАШ API (не напрямую в Supabase) ⬇️
   const uploadFile = async (file: File, type: "image" | "background") => {
     setIsUploading(true);
     try {
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-      const filePath = `${type}/${fileName}`;
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("type", type);
 
-      const { error: uploadError } = await supabase.storage.from("invites").upload(filePath, file);
-      if (uploadError) throw uploadError;
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
 
-      const { data: urlData } = supabase.storage.from("invites").getPublicUrl(filePath);
+      const data = await response.json();
 
-      if (type === "image") setCustomImageUrl(urlData.publicUrl);
-      else setCustomBackgroundUrl(urlData.publicUrl);
+      if (!response.ok) {
+        throw new Error(data.error || "Ошибка загрузки");
+      }
+
+      if (type === "image") setCustomImageUrl(data.url);
+      else setCustomBackgroundUrl(data.url);
     } catch (err: any) {
       alert("Ошибка загрузки: " + err.message);
     } finally {
