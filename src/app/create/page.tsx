@@ -350,9 +350,36 @@ export default function CreatePage() {
 
       <div className="relative z-10 max-w-2xl w-full">
         <Link href="/" className="text-gray-500 hover:text-pink-500 mb-6 inline-block">← На главную</Link>
-        <div className="w-full bg-white/50 rounded-full h-2 mb-8">
-          <div className="bg-gradient-to-r from-pink-500 to-rose-500 h-2 rounded-full transition-all duration-500 shadow-lg" style={{ width: `${progress}%` }}></div>
+        {/* Прогресс-бар */}
+<div className="w-full mb-8">
+  <div className="flex justify-between items-center mb-2 text-xs text-gray-500 font-medium">
+    <span>Шаг {step} из {totalSteps}</span>
+    <span className="text-pink-600 font-bold">{Math.round(progress)}%</span>
+  </div>
+  <div className="relative w-full bg-gray-100 rounded-full h-3 overflow-hidden shadow-inner">
+    {/* Заполнение */}
+    <div
+      className="relative bg-gradient-to-r from-pink-400 via-pink-500 to-rose-500 h-3 rounded-full transition-all duration-700 ease-out shadow-md"
+      style={{ width: `${progress}%` }}
+    >
+      {/* Блик */}
+      {progress > 5 && (
+        <div className="absolute inset-0 overflow-hidden rounded-full">
+          <div className="progress-shine"></div>
         </div>
+      )}
+    </div>
+    {/* Пульсирующий кружок на позиции progress */}
+    {progress > 5 && (
+      <div
+        className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 progress-dot bg-pink-500 rounded-full w-4 h-4 border-2 border-white shadow-lg flex items-center justify-center transition-all duration-700 ease-out"
+        style={{ left: `${progress}%` }}
+      >
+        <span className="text-[8px] text-white font-bold">{step}</span>
+      </div>
+    )}
+  </div>
+</div>
 
         <div className="bg-white/70 backdrop-blur-xl rounded-[2rem] shadow-2xl p-8 min-h-[400px] flex flex-col border border-white/80">
           {step === 1 && (
@@ -603,7 +630,15 @@ export default function CreatePage() {
                               <div className="flex gap-2">
                                 <input type="text" value={newOptionEmoji} onChange={(e) => setNewOptionEmoji(e.target.value)} className="w-14 p-2 text-center border-2 border-gray-200 rounded-lg focus:border-pink-500 outline-none text-sm" maxLength={2} />
                                 <input type="text" value={newOptionName} onChange={(e) => setNewOptionName(e.target.value)} placeholder="Название..." className="flex-1 min-w-0 p-2 border-2 border-gray-200 rounded-lg focus:border-pink-500 outline-none text-sm text-gray-900" onKeyDown={(e) => { if (e.key === "Enter") addCustomOption(catId); }} />
-                                <button onClick={() => addCustomOption(catId)} className="bg-pink-500 hover:bg-pink-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-all flex-shrink-0">+</button>
+                                <button
+  onClick={() => addCustomOption(catId)}
+  className="bg-pink-500 hover:bg-pink-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-all flex-shrink-0 flex items-center justify-center"
+  title="Добавить вариант"
+>
+  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+  </svg>
+</button>
                               </div>
                             </div>
                           </div>
