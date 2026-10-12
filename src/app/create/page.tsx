@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
 import { supabase, ensureAnonymousSession } from "@/lib/supabase";
 import { IMAGES, CatsImage } from "@/components/Images";
@@ -104,6 +104,8 @@ export default function CreatePage() {
   const [customText, setCustomText] = useState("Ты пойдешь со мной на свидание?");
   const [buttonYesText, setButtonYesText] = useState("Да");
   const [buttonNoText, setButtonNoText] = useState("Нет");
+  const [voiceUrl, setVoiceUrl] = useState<string | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState<string[]>(["food"]);
   const [noAnimation, setNoAnimation] = useState("run");
   const [finalTitle, setFinalTitle] = useState("");
@@ -113,18 +115,14 @@ export default function CreatePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
-  // Кастомные варианты
   const [customOptions, setCustomOptions] = useState<Record<string, { id: string; name: string; emoji: string }[]>>({});
-
-  // Скрытые стандартные варианты (по категориям)
   const [hiddenDefaults, setHiddenDefaults] = useState<Record<string, string[]>>({});
-
-  // Развёрнутая категория
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
-
-  // Поля ввода нового варианта
   const [newOptionName, setNewOptionName] = useState("");
   const [newOptionEmoji, setNewOptionEmoji] = useState("✨");
+
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
 
   const TEXT_PRESETS = forWhom === "her" ? TEXT_PRESETS_FOR_HER : TEXT_PRESETS_FOR_HIM;
   const BUTTON_YES_PRESETS = forWhom === "her" ? BUTTON_YES_PRESETS_FOR_HER : BUTTON_YES_PRESETS_FOR_HIM;
@@ -132,7 +130,7 @@ export default function CreatePage() {
   const FINAL_TITLE_PRESETS = forWhom === "her" ? FINAL_TITLE_PRESETS_FOR_HER : FINAL_TITLE_PRESETS_FOR_HIM;
   const FINAL_DESC_PRESETS = forWhom === "her" ? FINAL_DESC_PRESETS_FOR_HER : FINAL_DESC_PRESETS_FOR_HIM;
 
-  const totalSteps = 8;
+  const totalSteps = 9;
   const progress = (step / totalSteps) * 100;
 
   const toggleCategory = (id: string) => {
@@ -144,23 +142,19 @@ export default function CreatePage() {
     }
   };
 
-  // Получить видимые стандартные варианты (без скрытых)
   const getVisibleDefaults = (catId: string) => {
     const hidden = hiddenDefaults[catId] || [];
     return (DEFAULT_OPTIONS[catId] || []).filter((opt) => !hidden.includes(opt.id));
   };
 
-  // Скрыть стандартный вариант
   const hideDefaultOption = (catId: string, optionId: string) => {
     setHiddenDefaults({ ...hiddenDefaults, [catId]: [...(hiddenDefaults[catId] || []), optionId] });
   };
 
-  // Вернуть скрытый вариант
   const restoreDefaultOption = (catId: string, optionId: string) => {
     setHiddenDefaults({ ...hiddenDefaults, [catId]: (hiddenDefaults[catId] || []).filter((id) => id !== optionId) });
   };
 
-  // Добавить свой вариант
   const addCustomOption = (catId: string) => {
     if (!newOptionName.trim()) { alert("Введите название варианта!"); return; }
     const newOption = { id: `custom-${Date.now()}`, name: newOptionName, emoji: newOptionEmoji || "✨" };
@@ -169,12 +163,11 @@ export default function CreatePage() {
     setNewOptionEmoji("✨");
   };
 
-  // Удалить свой вариант
   const removeCustomOption = (catId: string, optionId: string) => {
     setCustomOptions({ ...customOptions, [catId]: (customOptions[catId] || []).filter((o) => o.id !== optionId) });
   };
 
-  const uploadFile = async (file: File, type: "image" | "background") => {
+  const uploadFile = async (file: File, type: "image" | "background" | "voice") => {
     setIsUploading(true);
     try {
       const formData = new FormData();
@@ -184,11 +177,44 @@ export default function CreatePage() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Ошибка загрузки");
       if (type === "image") setCustomImageUrl(data.url);
-      else setCustomBackgroundUrl(data.url);
+      else if (type === "background") setCustomBackgroundUrl(data.url);
+      else if (type === "voice") setVoiceUrl(data.url);
     } catch (err: any) {
       alert("Ошибка загрузки: " + err.message);
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      chunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data);
+      };
+
+      mediaRecorder.onstop = async () => {
+        const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+        const file = new File([blob], `voice-${Date.now()}.webm`, { type: "audio/webm" });
+        await uploadFile(file, "voice");
+        stream.getTracks().forEach((track) => track.stop());
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+    } catch (err: any) {
+      alert("Ошибка доступа к микрофону: " + err.message);
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
     }
   };
 
@@ -203,6 +229,7 @@ export default function CreatePage() {
       background_color: selectedBackground, custom_background_url: customBackgroundUrl,
       custom_text: customText,
       button_yes_text: buttonYesText, button_no_text: buttonNoText,
+      voice_url: voiceUrl,
       categories: selectedCategories, no_animation: noAnimation,
       custom_options: customOptions,
       hidden_defaults: hiddenDefaults,
@@ -246,12 +273,10 @@ export default function CreatePage() {
           <p className="text-gray-500 mb-6">Отправьте эту ссылку получателю:</p>
           <div className="bg-gray-100 p-4 rounded-xl mb-4 break-all text-sm text-gray-700 border-2 border-dashed border-gray-300">{generatedLink}</div>
 
-          {/* Кнопка "Скопировать ссылку" */}
           <button onClick={copyToClipboard} className={`w-full font-bold py-4 px-6 rounded-full transition-all duration-300 shadow-lg text-lg mb-4 ${copied ? "bg-green-500 text-white" : "bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white"}`}>
             {copied ? "✅ Скопировано!" : "📋 Скопировать ссылку"}
           </button>
 
-          {/* Кнопки шаринга */}
           <p className="text-xs text-gray-500 mb-3">Или поделитесь:</p>
           <div className="flex justify-center gap-3 mb-6">
             <button onClick={() => handleShare("telegram")} className="w-12 h-12 rounded-full bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center transition-all hover:scale-110" title="Telegram">
@@ -347,7 +372,7 @@ export default function CreatePage() {
               <div className="w-full max-w-md">
                 <label className="block text-gray-700 font-medium mb-2 text-center text-sm">Или загрузи свою картинку</label>
                 <label className={`flex flex-col items-center justify-center w-full h-28 border-2 border-dashed rounded-2xl cursor-pointer transition-all hover:border-pink-400 hover:bg-pink-50 ${customImageUrl ? "border-pink-500 bg-pink-50" : "border-gray-300"}`}>
-                  {customImageUrl ? (<img src={customImageUrl} alt="Своя картинка" className="max-h-24 object-contain" />) : (<><span className="text-2xl mb-1">📤</span><span className="text-xs text-gray-500">{isUploading ? "Загрузка..." : "Нажми, чтобы загрузить"}</span></>)}
+                  {customImageUrl ? (<img src={customImageUrl} alt="Своя картинка" className="max-h-24 object-contain rounded-lg" />) : (<><span className="text-2xl mb-1">📤</span><span className="text-xs text-gray-500">{isUploading ? "Загрузка..." : "Нажми, чтобы загрузить"}</span></>)}
                   <input type="file" accept="image/*" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) uploadFile(file, "image"); }} disabled={isUploading} />
                 </label>
                 {customImageUrl && <button onClick={() => setCustomImageUrl(null)} className="text-xs text-red-500 mt-1 block mx-auto">Удалить свою картинку</button>}
@@ -407,6 +432,59 @@ export default function CreatePage() {
           )}
 
           {step === 7 && (
+            <div className="flex-1 flex flex-col items-center justify-center">
+              <h2 className="text-3xl font-bold text-gray-900 mb-2 text-center">🎤 Голосовое сообщение</h2>
+              <p className="text-gray-500 text-center mb-6 text-sm max-w-md">
+                Запишите своё голосовое послание — получатель услышит его, когда откроет приглашение. Это сделает его по-настоящему личным ❤️
+              </p>
+
+              <div className="w-full max-w-md space-y-4">
+                {!voiceUrl && (
+                  <button
+                    onClick={isRecording ? stopRecording : startRecording}
+                    className={`w-full font-bold py-6 px-6 rounded-2xl transition-all duration-300 shadow-lg text-lg flex items-center justify-center gap-3 ${
+                      isRecording
+                        ? "bg-red-500 hover:bg-red-600 text-white animate-pulse"
+                        : "bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white"
+                    }`}
+                  >
+                    {isRecording ? (
+                      <><span className="text-2xl">⏹️</span> Остановить запись</>
+                    ) : (
+                      <><span className="text-2xl">🎤</span> Начать запись</>
+                    )}
+                  </button>
+                )}
+
+                {isRecording && (
+                  <div className="text-center text-sm text-red-500 animate-pulse">
+                    ● Идёт запись... Говорите!
+                  </div>
+                )}
+
+                {voiceUrl && (
+                  <div className="bg-pink-50 border-2 border-pink-200 rounded-2xl p-4">
+                    <p className="text-xs text-gray-500 mb-2 text-center">✅ Голосовое сохранено:</p>
+                    <audio controls src={voiceUrl} className="w-full" />
+                    <button onClick={() => setVoiceUrl(null)} className="text-xs text-red-500 mt-2 block mx-auto">🗑 Удалить и записать заново</button>
+                  </div>
+                )}
+
+                {!voiceUrl && (
+                  <div>
+                    <p className="text-xs text-gray-500 text-center mb-2">Или загрузите аудиофайл:</p>
+                    <label className="flex flex-col items-center justify-center w-full h-20 border-2 border-dashed border-gray-300 rounded-2xl cursor-pointer transition-all hover:border-pink-400 hover:bg-pink-50">
+                      <span className="text-2xl mb-1">📁</span>
+                      <span className="text-xs text-gray-500">{isUploading ? "Загрузка..." : "Нажми, чтобы загрузить MP3"}</span>
+                      <input type="file" accept="audio/*" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) uploadFile(file, "voice"); }} disabled={isUploading} />
+                    </label>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {step === 8 && (
             <div className="flex-1 flex flex-col items-center justify-center">
               <h2 className="text-3xl font-bold text-gray-900 mb-2 text-center">Что будем выбирать?</h2>
               <p className="text-gray-500 text-center mb-6 text-sm">
@@ -511,27 +589,9 @@ export default function CreatePage() {
                             <div className="bg-gray-50 rounded-xl p-3">
                               <p className="text-xs text-gray-500 mb-2">Добавить свой вариант:</p>
                               <div className="flex gap-2">
-                                <input
-                                  type="text"
-                                  value={newOptionEmoji}
-                                  onChange={(e) => setNewOptionEmoji(e.target.value)}
-                                  className="w-14 p-2 text-center border-2 border-gray-200 rounded-lg focus:border-pink-500 outline-none text-sm"
-                                  maxLength={2}
-                                />
-                                <input
-                                  type="text"
-                                  value={newOptionName}
-                                  onChange={(e) => setNewOptionName(e.target.value)}
-                                  placeholder="Название..."
-                                  className="flex-1 min-w-0 p-2 border-2 border-gray-200 rounded-lg focus:border-pink-500 outline-none text-sm text-gray-900"
-                                  onKeyDown={(e) => { if (e.key === "Enter") addCustomOption(catId); }}
-                                />
-                                <button
-                                  onClick={() => addCustomOption(catId)}
-                                  className="bg-pink-500 hover:bg-pink-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-all flex-shrink-0"
-                                >
-                                  +
-                                </button>
+                                <input type="text" value={newOptionEmoji} onChange={(e) => setNewOptionEmoji(e.target.value)} className="w-14 p-2 text-center border-2 border-gray-200 rounded-lg focus:border-pink-500 outline-none text-sm" maxLength={2} />
+                                <input type="text" value={newOptionName} onChange={(e) => setNewOptionName(e.target.value)} placeholder="Название..." className="flex-1 min-w-0 p-2 border-2 border-gray-200 rounded-lg focus:border-pink-500 outline-none text-sm text-gray-900" onKeyDown={(e) => { if (e.key === "Enter") addCustomOption(catId); }} />
+                                <button onClick={() => addCustomOption(catId)} className="bg-pink-500 hover:bg-pink-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-all flex-shrink-0">+</button>
                               </div>
                             </div>
                           </div>
@@ -548,13 +608,15 @@ export default function CreatePage() {
                 {NO_ANIMATIONS.map((anim) => {
                   const isSelected = noAnimation === anim.id;
                   return (
-                    <div key={anim.id} className={`p-3 rounded-2xl border-2 transition-all duration-300 flex flex-col items-center gap-1 ${isSelected ? "border-pink-500 bg-pink-50 shadow-md" : "border-gray-200 bg-white hover:border-pink-300"}`}>
-                      <button onClick={() => setNoAnimation(anim.id)} className="flex flex-col items-center gap-1 w-full">
+                    <div key={anim.id} className={`rounded-2xl border-2 transition-all duration-300 flex flex-col items-center overflow-hidden ${isSelected ? "border-pink-500 bg-pink-50 shadow-md" : "border-gray-200 bg-white hover:border-pink-300"}`}>
+                      <button onClick={() => setNoAnimation(anim.id)} className="flex flex-col items-center gap-1 w-full p-3 pb-1 cursor-pointer">
                         <span className="text-2xl">{anim.emoji}</span>
                         <span className={`text-sm font-semibold ${isSelected ? "text-pink-700" : "text-gray-700"}`}>{anim.label}</span>
                       </button>
-                      <PreviewAnimation type={anim.id} />
-                      <span className="text-[9px] text-gray-400 leading-tight text-center px-1">{anim.hint}</span>
+                      <div className="w-full px-3 pb-3 flex flex-col items-center gap-1">
+                        <PreviewAnimation type={anim.id} />
+                        <span className="text-[9px] text-gray-400 leading-tight text-center px-1">{anim.hint}</span>
+                      </div>
                     </div>
                   );
                 })}
@@ -562,7 +624,7 @@ export default function CreatePage() {
             </div>
           )}
 
-          {step === 8 && (
+          {step === 9 && (
             <div className="flex-1 flex flex-col items-center justify-center">
               <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">Финальный экран</h2>
               <p className="text-gray-500 text-center mb-6 text-sm">Используйте {"{date}"}, {"{time}"} и {"{food}"} для подстановки</p>
@@ -596,8 +658,8 @@ export default function CreatePage() {
             <p className="text-gray-500 text-sm mb-2 text-center">Предпросмотр</p>
             <div className={`p-6 rounded-2xl border-2 border-gray-200 transition-all duration-500 ${!customBackgroundUrl ? `bg-gradient-to-b ${bgClass}` : ""}`} style={customBackgroundUrl ? { backgroundImage: `url(${customBackgroundUrl})`, backgroundSize: "cover", backgroundPosition: "center" } : {}}>
               <div className="bg-white/80 rounded-2xl p-4 shadow-md">
-                <div className="w-full h-20 mb-3 flex items-center justify-center">
-                  {customImageUrl ? <img src={customImageUrl} alt="Превью" className="max-h-20 object-contain" /> : <SelectedImage />}
+                <div className="w-full mb-3 flex items-center justify-center">
+                  {customImageUrl ? (<img src={customImageUrl} alt="Превью" className="max-h-20 object-contain rounded-xl shadow-md border-2 border-white" />) : (<div className="w-full h-20 flex items-center justify-center"><SelectedImage /></div>)}
                 </div>
                 <p className="text-center text-sm font-semibold text-gray-700 mb-3">{recipientName ? `${recipientName}, ` : ""}{customText}</p>
                 <div className="flex gap-2 justify-center">

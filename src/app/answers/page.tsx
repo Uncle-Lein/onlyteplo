@@ -29,7 +29,7 @@ export default function AnswersPage() {
 
     const { data: answersData } = await supabase
       .from("answers")
-      .select(`*, invites!inner(creator_id, recipient_name, custom_text, viewed_at)`)
+      .select(`*, invites!inner(creator_id, recipient_name, custom_text, viewed_at, custom_options)`)
       .eq("invites.creator_id", session.user.id)
       .order("created_at", { ascending: false });
 
@@ -63,6 +63,16 @@ export default function AnswersPage() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  const getOptionName = (id: string, customOptions: any) => {
+    if (OPTION_NAMES[id]) return OPTION_NAMES[id];
+    if (customOptions) {
+      const allCustom = Object.values(customOptions).flat() as { id: string; name: string; emoji: string }[];
+      const found = allCustom.find((o) => o.id === id);
+      if (found) return `${found.emoji} ${found.name}`;
+    }
+    return id;
+  };
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-pink-100 via-rose-50 to-blue-50 p-4 py-10">
       <div className="max-w-2xl mx-auto">
@@ -72,7 +82,6 @@ export default function AnswersPage() {
 
         <h1 className="text-3xl font-bold text-gray-800 mb-8">📋 Мои приглашения и ответы</h1>
 
-        {/* Блок с приглашениями */}
         {invites.length > 0 && (
           <div className="mb-8">
             <h2 className="text-xl font-bold text-gray-700 mb-4">📨 Мои приглашения</h2>
@@ -122,7 +131,6 @@ export default function AnswersPage() {
           </div>
         )}
 
-        {/* Блок с ответами */}
         <div>
           <h2 className="text-xl font-bold text-gray-700 mb-4">💌 Ответы</h2>
           {isLoading ? (
@@ -148,7 +156,7 @@ export default function AnswersPage() {
                     <p className="text-gray-600">
                       <span className="font-semibold">🍽 Выбор:</span>{" "}
                       {Array.isArray(answer.foods) && answer.foods.length > 0
-                        ? answer.foods.map((id: string) => OPTION_NAMES[id] || id).join(", ")
+                        ? answer.foods.map((id: string) => getOptionName(id, answer.invites?.custom_options)).join(", ")
                         : "—"}
                     </p>
                     <p className="text-gray-600">

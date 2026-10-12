@@ -73,6 +73,13 @@ export default function InvitePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [dbError, setDbError] = useState<string | null>(null);
   const [activeCategoryIndex, setActiveCategoryIndex] = useState(0);
+  const [now, setNow] = useState(new Date());
+
+  // Таймер обратного отсчёта
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const fetchInvite = async () => {
@@ -134,7 +141,6 @@ export default function InvitePage() {
   const categories = inviteData?.categories || ["food"];
   const currentCategory = categories[activeCategoryIndex];
 
-  // Учитываем скрытые стандартные варианты
   const hiddenDefaults = inviteData?.hidden_defaults?.[currentCategory] || [];
   const defaultOpts = (ALL_OPTIONS[currentCategory] || []).filter((o) => !hiddenDefaults.includes(o.id));
   const customOpts = inviteData?.custom_options?.[currentCategory] || [];
@@ -150,6 +156,46 @@ export default function InvitePage() {
     ? { backgroundImage: `url(${inviteData.custom_background_url})`, backgroundSize: "cover", backgroundPosition: "center" }
     : {};
   const bgClassName = useCustomBackground ? "" : `bg-gradient-to-b ${bgClass}`;
+
+  // Компонент обратного отсчёта
+  const CountdownTimer = ({ date, time }: { date: string; time: string }) => {
+    const targetDate = new Date(`${date}T${time}`);
+    const diff = targetDate.getTime() - now.getTime();
+
+    if (isNaN(targetDate.getTime())) return null;
+
+    if (diff <= 0) {
+      return <p className="text-2xl font-bold text-pink-600">🎉 Время встречи наступило!</p>;
+    }
+
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+    const minutes = Math.floor((diff / (1000 * 60)) % 60);
+    const seconds = Math.floor((diff / 1000) % 60);
+
+    return (
+      <div className="flex justify-center gap-3">
+        {days > 0 && (
+          <div className="text-center bg-white/70 rounded-xl px-3 py-2 min-w-[60px]">
+            <div className="text-2xl font-bold text-pink-600">{days}</div>
+            <div className="text-xs text-gray-500">дней</div>
+          </div>
+        )}
+        <div className="text-center bg-white/70 rounded-xl px-3 py-2 min-w-[60px]">
+          <div className="text-2xl font-bold text-pink-600">{hours}</div>
+          <div className="text-xs text-gray-500">часов</div>
+        </div>
+        <div className="text-center bg-white/70 rounded-xl px-3 py-2 min-w-[60px]">
+          <div className="text-2xl font-bold text-pink-600">{minutes}</div>
+          <div className="text-xs text-gray-500">минут</div>
+        </div>
+        <div className="text-center bg-white/70 rounded-xl px-3 py-2 min-w-[60px]">
+          <div className="text-2xl font-bold text-pink-600">{seconds}</div>
+          <div className="text-xs text-gray-500">секунд</div>
+        </div>
+      </div>
+    );
+  };
 
   if (isLoading) return <main className="flex min-h-screen items-center justify-center bg-pink-50"><p className="text-xl text-gray-500 animate-pulse">Загрузка...</p></main>;
   if (dbError || !inviteData) return <main className="flex min-h-screen flex-col items-center justify-center bg-pink-50 p-4 text-center"><h1 className="text-5xl font-bold text-gray-800 mb-4">😕</h1><p className="text-xl text-gray-600 mb-4">Приглашение не найдено.</p><Link href="/" className="text-pink-500 font-medium">← На главную</Link></main>;
@@ -184,6 +230,15 @@ export default function InvitePage() {
             )}
             {selectedDate && (<div className="bg-white/60 rounded-xl p-3 border border-pink-100"><p className="text-xs text-gray-500 uppercase tracking-wide mb-1">📅 Дата встречи</p><p className="text-sm font-semibold text-gray-800">{selectedDate} в {selectedTime}</p></div>)}
           </div>
+
+          {/* Обратный отсчёт */}
+          {selectedDate && selectedTime && (
+            <div className="mt-4 bg-gradient-to-br from-pink-100 to-rose-100 rounded-2xl p-4 border border-pink-200 mb-6">
+              <p className="text-xs text-gray-500 uppercase tracking-wide mb-3 text-center">⏰ До нашей встречи</p>
+              <CountdownTimer date={selectedDate} time={selectedTime} />
+            </div>
+          )}
+
           <p className="text-lg text-gray-500 font-medium">Жду нашей встречи ❤️</p>
         </div>
       </main>
@@ -240,12 +295,31 @@ export default function InvitePage() {
     <main className={`flex min-h-screen flex-col items-center justify-center p-4 overflow-hidden ${bgClassName}`} style={bgStyle}>
       <div className="max-w-md w-full bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl p-8 flex flex-col items-center relative border border-white/80">
         <Link href="/" className="absolute top-4 left-4 text-gray-400 hover:text-pink-500 text-sm font-medium">← Назад</Link>
-        <div className="w-full h-32 mb-6 flex items-center justify-center">
-          {useCustomImage
-            ? <img src={inviteData.custom_image_url} alt="Приглашение" className="max-h-32 object-contain" />
-            : <ImageComponent />
-          }
+        <div className="w-full mb-6 flex items-center justify-center">
+          {useCustomImage ? (
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-pink-200 to-rose-200 rounded-3xl blur-md opacity-50"></div>
+              <img
+                src={inviteData.custom_image_url}
+                alt="Приглашение"
+                className="relative max-h-40 object-contain rounded-3xl shadow-2xl border-4 border-white"
+              />
+            </div>
+          ) : (
+            <div className="w-full h-32 flex items-center justify-center">
+              <ImageComponent />
+            </div>
+          )}
         </div>
+
+        {/* Аудиоплеер */}
+        {inviteData?.voice_url && (
+          <div className="w-full mb-4 bg-pink-50 rounded-2xl p-3 border border-pink-100">
+            <p className="text-xs text-gray-500 mb-2 text-center">🎤 Голосовое послание от создателя:</p>
+            <audio controls src={inviteData.voice_url} className="w-full" />
+          </div>
+        )}
+
         <h1 className="text-center mb-8">
           {inviteData?.recipient_name && <span className="block text-4xl font-extrabold text-pink-600 mb-2">{inviteData.recipient_name}!</span>}
           <span className="block text-xl font-semibold text-gray-700 leading-relaxed">{inviteData?.custom_text || "Ты пойдешь со мной на свидание?"}</span>
