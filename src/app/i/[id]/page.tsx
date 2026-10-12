@@ -314,9 +314,17 @@ export default function InvitePage() {
 
         {/* Аудиоплеер */}
         {inviteData?.voice_url && (
-          <div className="w-full mb-4 bg-pink-50 rounded-2xl p-3 border border-pink-100">
-            <p className="text-xs text-gray-500 mb-2 text-center">🎤 Голосовое послание от создателя:</p>
-            <audio controls src={inviteData.voice_url} className="w-full" />
+          <div className="w-full mb-4 bg-pink-50 rounded-2xl p-4 border border-pink-100">
+            <p className="text-sm text-gray-600 mb-3 text-center font-medium">🎤 Голосовое послание от создателя:</p>
+            <audio
+              controls
+              src={inviteData.voice_url}
+              className="w-full"
+              preload="metadata"
+              controlsList="nodownload"
+            >
+              Ваш браузер не поддерживает аудио.
+            </audio>
           </div>
         )}
 

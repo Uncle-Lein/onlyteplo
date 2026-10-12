@@ -189,7 +189,18 @@ export default function CreatePage() {
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
+
+      // Определяем поддерживаемый формат
+      let mimeType = "audio/webm";
+      if (typeof MediaRecorder !== "undefined" && MediaRecorder.isTypeSupported) {
+        if (MediaRecorder.isTypeSupported("audio/mp4")) {
+          mimeType = "audio/mp4";
+        } else if (MediaRecorder.isTypeSupported("audio/webm;codecs=opus")) {
+          mimeType = "audio/webm;codecs=opus";
+        }
+      }
+
+      const mediaRecorder = new MediaRecorder(stream, { mimeType });
       mediaRecorderRef.current = mediaRecorder;
       chunksRef.current = [];
 
@@ -198,8 +209,9 @@ export default function CreatePage() {
       };
 
       mediaRecorder.onstop = async () => {
-        const blob = new Blob(chunksRef.current, { type: "audio/webm" });
-        const file = new File([blob], `voice-${Date.now()}.webm`, { type: "audio/webm" });
+        const blob = new Blob(chunksRef.current, { type: mimeType });
+        const ext = mimeType.includes("mp4") ? "mp4" : "webm";
+        const file = new File([blob], `voice-${Date.now()}.${ext}`, { type: mimeType });
         await uploadFile(file, "voice");
         stream.getTracks().forEach((track) => track.stop());
       };
@@ -465,7 +477,7 @@ export default function CreatePage() {
                 {voiceUrl && (
                   <div className="bg-pink-50 border-2 border-pink-200 rounded-2xl p-4">
                     <p className="text-xs text-gray-500 mb-2 text-center">✅ Голосовое сохранено:</p>
-                    <audio controls src={voiceUrl} className="w-full" />
+                    <audio controls src={voiceUrl} className="w-full" preload="metadata" />
                     <button onClick={() => setVoiceUrl(null)} className="text-xs text-red-500 mt-2 block mx-auto">🗑 Удалить и записать заново</button>
                   </div>
                 )}
