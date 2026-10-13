@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { IMAGES, CatsImage } from "@/components/Images";
+import AudioPlayer from "@/components/AudioPlayer";
 
 const ALL_OPTIONS: Record<string, { id: string; name: string; emoji: string }[]> = {
   food: [
@@ -75,7 +76,6 @@ export default function InvitePage() {
   const [activeCategoryIndex, setActiveCategoryIndex] = useState(0);
   const [now, setNow] = useState(new Date());
 
-  // Таймер обратного отсчёта
   useEffect(() => {
     const interval = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(interval);
@@ -85,7 +85,6 @@ export default function InvitePage() {
     const fetchInvite = async () => {
       if (!inviteId) return;
 
-      // 1. Загружаем приглашение
       const { data, error } = await supabase.from("invites").select("*").eq("id", inviteId).single();
 
       if (error) { setDbError(`Ошибка: ${error.message}`); setIsLoading(false); return; }
@@ -93,12 +92,10 @@ export default function InvitePage() {
 
       setInviteData(data);
 
-      // Отмечаем "просмотрено"
       if (!data.viewed_at) {
         await supabase.from("invites").update({ viewed_at: new Date().toISOString() }).eq("id", inviteId);
       }
 
-      // 2. Проверяем, есть ли уже ответ на это приглашение
       const { data: existingAnswer } = await supabase
         .from("answers")
         .select("*")
@@ -106,7 +103,6 @@ export default function InvitePage() {
         .maybeSingle();
 
       if (existingAnswer) {
-        // Если ответ уже есть — показываем финальный экран с этими данными
         setSelectedFoods(existingAnswer.foods || []);
         setSelectedDate(existingAnswer.meeting_date || "");
         setSelectedTime(existingAnswer.meeting_time || "");
@@ -177,7 +173,6 @@ export default function InvitePage() {
     : {};
   const bgClassName = useCustomBackground ? "" : `bg-gradient-to-b ${bgClass}`;
 
-  // Компонент обратного отсчёта
   const CountdownTimer = ({ date, time }: { date: string; time: string }) => {
     const targetDate = new Date(`${date}T${time}`);
     const diff = targetDate.getTime() - now.getTime();
@@ -251,7 +246,6 @@ export default function InvitePage() {
             {selectedDate && (<div className="bg-white/60 rounded-xl p-3 border border-pink-100"><p className="text-xs text-gray-500 uppercase tracking-wide mb-1">📅 Дата встречи</p><p className="text-sm font-semibold text-gray-800">{selectedDate} в {selectedTime}</p></div>)}
           </div>
 
-          {/* Обратный отсчёт */}
           {selectedDate && selectedTime && (
             <div className="mt-4 bg-gradient-to-br from-pink-100 to-rose-100 rounded-2xl p-4 border border-pink-200 mb-6">
               <p className="text-xs text-gray-500 uppercase tracking-wide mb-3 text-center">⏰ До нашей встречи</p>
@@ -294,27 +288,27 @@ export default function InvitePage() {
         <div className="max-w-md w-full bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl p-8 flex flex-col items-center border border-white/80 relative">
           <button onClick={handlePrevCategory} className="absolute top-4 left-4 text-gray-400 hover:text-pink-500 text-sm font-medium">← Назад</button>
           <div className="w-full mb-6 mt-4">
-  <div className="relative w-full bg-gray-100 rounded-full h-3 overflow-hidden shadow-inner">
-    <div
-      className="relative bg-gradient-to-r from-pink-400 via-pink-500 to-rose-500 h-3 rounded-full transition-all duration-700 ease-out shadow-md"
-      style={{ width: `${((activeCategoryIndex + 1) / categories.length) * 100}%` }}
-    >
-      {((activeCategoryIndex + 1) / categories.length) * 100 > 5 && (
-        <div className="absolute inset-0 overflow-hidden rounded-full">
-          <div className="progress-shine"></div>
-        </div>
-      )}
-    </div>
-    {((activeCategoryIndex + 1) / categories.length) * 100 > 5 && (
-      <div
-        className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 progress-dot bg-pink-500 rounded-full w-4 h-4 border-2 border-white shadow-lg flex items-center justify-center transition-all duration-700 ease-out"
-        style={{ left: `${((activeCategoryIndex + 1) / categories.length) * 100}%` }}
-      >
-        <span className="text-[8px] text-white font-bold">{activeCategoryIndex + 1}</span>
-      </div>
-    )}
-  </div>
-</div>
+            <div className="relative w-full bg-gray-100 rounded-full h-3 overflow-hidden shadow-inner">
+              <div
+                className="relative bg-gradient-to-r from-pink-400 via-pink-500 to-rose-500 h-3 rounded-full transition-all duration-700 ease-out shadow-md"
+                style={{ width: `${((activeCategoryIndex + 1) / categories.length) * 100}%` }}
+              >
+                {((activeCategoryIndex + 1) / categories.length) * 100 > 5 && (
+                  <div className="absolute inset-0 overflow-hidden rounded-full">
+                    <div className="progress-shine"></div>
+                  </div>
+                )}
+              </div>
+              {((activeCategoryIndex + 1) / categories.length) * 100 > 5 && (
+                <div
+                  className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 progress-dot bg-pink-500 rounded-full w-4 h-4 border-2 border-white shadow-lg flex items-center justify-center transition-all duration-700 ease-out"
+                  style={{ left: `${((activeCategoryIndex + 1) / categories.length) * 100}%` }}
+                >
+                  <span className="text-[8px] text-white font-bold">{activeCategoryIndex + 1}</span>
+                </div>
+              )}
+            </div>
+          </div>
           <h1 className="text-3xl font-bold text-gray-800 text-center mb-2">{categoryInfo.title}</h1>
           <p className="text-gray-500 text-center mb-8">{categoryInfo.subtitle}</p>
           <div className="grid grid-cols-2 gap-4 w-full mb-8">
@@ -353,19 +347,12 @@ export default function InvitePage() {
           )}
         </div>
 
-        {/* Аудиоплеер */}
         {inviteData?.voice_url && (
-          <div className="w-full mb-4 bg-pink-50 rounded-2xl p-4 border border-pink-100">
-            <p className="text-sm text-gray-600 mb-3 text-center font-medium">🎤 Голосовое послание от создателя:</p>
-            <audio
-              controls
+          <div className="w-full mb-4">
+            <AudioPlayer
               src={inviteData.voice_url}
-              className="w-full"
-              preload="metadata"
-              controlsList="nodownload"
-            >
-              Ваш браузер не поддерживает аудио.
-            </audio>
+              label="🎤 Голосовое послание от создателя"
+            />
           </div>
         )}
 
