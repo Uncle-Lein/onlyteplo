@@ -106,6 +106,7 @@ export default function CreatePage() {
   const [buttonYesText, setButtonYesText] = useState("Да");
   const [buttonNoText, setButtonNoText] = useState("Нет");
   const [voiceUrl, setVoiceUrl] = useState<string | null>(null);
+  const [voiceLabel, setVoiceLabel] = useState("🎤 Голосовое послание от создателя");
   const [isRecording, setIsRecording] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState<string[]>(["food"]);
   const [noAnimation, setNoAnimation] = useState("run");
@@ -242,6 +243,7 @@ export default function CreatePage() {
       custom_text: customText,
       button_yes_text: buttonYesText, button_no_text: buttonNoText,
       voice_url: voiceUrl,
+      voice_label: voiceLabel,
       categories: selectedCategories, no_animation: noAnimation,
       custom_options: customOptions,
       hidden_defaults: hiddenDefaults,
@@ -351,7 +353,6 @@ export default function CreatePage() {
       <div className="relative z-10 max-w-2xl w-full">
         <Link href="/" className="text-gray-500 hover:text-pink-500 mb-6 inline-block">← На главную</Link>
 
-        {/* Прогресс-бар */}
         <div className="w-full mb-8">
           <div className="flex justify-between items-center mb-2 text-xs text-gray-500 font-medium">
             <span>Шаг {step} из {totalSteps}</span>
@@ -456,12 +457,12 @@ export default function CreatePage() {
               <div className="w-full max-w-md space-y-6">
                 <div>
                   <label className="block text-gray-700 font-medium mb-2">Кнопка «Да»</label>
-                  <input type="text" value={buttonYesText} onChange={(e) => setButtonYesText(e.target.value)} className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-pink-500 focus:ring-4 focus:ring-pink-100 outline-none text-lg text-gray-900" />
+                  <input type="text" value={buttonYesText} onChange={(e) => setButtonYesText(e.target.value)} maxLength={30} className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-pink-500 focus:ring-4 focus:ring-pink-100 outline-none text-lg text-gray-900" />
                   <PresetChips presets={BUTTON_YES_PRESETS} onSelect={setButtonYesText} />
                 </div>
                 <div>
                   <label className="block text-gray-700 font-medium mb-2">Кнопка «Нет»</label>
-                  <input type="text" value={buttonNoText} onChange={(e) => setButtonNoText(e.target.value)} className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-pink-500 focus:ring-4 focus:ring-pink-100 outline-none text-lg text-gray-900" />
+                  <input type="text" value={buttonNoText} onChange={(e) => setButtonNoText(e.target.value)} maxLength={30} className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-pink-500 focus:ring-4 focus:ring-pink-100 outline-none text-lg text-gray-900" />
                   <PresetChips presets={BUTTON_NO_PRESETS} onSelect={setButtonNoText} />
                 </div>
               </div>
@@ -502,6 +503,24 @@ export default function CreatePage() {
                 {voiceUrl && (
                   <div className="space-y-3">
                     <AudioPlayer src={voiceUrl} label="✅ Голосовое сохранено" />
+
+                    <div>
+                      <label className="block text-gray-700 font-medium mb-2 text-sm">
+                        Подпись над голосовым сообщением
+                      </label>
+                      <input
+                        type="text"
+                        value={voiceLabel}
+                        onChange={(e) => setVoiceLabel(e.target.value)}
+                        placeholder="Например: Слушай меня внимательно 🎤"
+                        className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-pink-500 outline-none text-sm text-gray-900"
+                        maxLength={60}
+                      />
+                      <p className="text-xs text-gray-400 mt-1 text-center">
+                        {voiceLabel.length}/60
+                      </p>
+                    </div>
+
                     <button
                       onClick={() => setVoiceUrl(null)}
                       className="text-xs text-red-500 hover:text-red-700 block mx-auto font-medium"
@@ -539,17 +558,17 @@ export default function CreatePage() {
                     <button
                       key={cat.id}
                       onClick={() => toggleCategory(cat.id)}
-                      className={`relative flex items-center gap-3 p-4 rounded-2xl border-2 transition-all duration-300 transform hover:-translate-y-1 ${
+                      className={`relative flex items-center gap-2 p-4 rounded-2xl border-2 transition-all duration-300 transform hover:-translate-y-1 min-w-0 ${
                         isSelected ? "border-pink-500 bg-pink-50 scale-105 shadow-md" : "border-gray-200 hover:border-pink-300 bg-white"
                       }`}
                     >
                       {isSelected && (
-                        <div className="absolute top-2 right-2 w-5 h-5 bg-pink-500 rounded-full flex items-center justify-center">
+                        <div className="absolute top-2 right-2 w-5 h-5 bg-pink-500 rounded-full flex items-center justify-center flex-shrink-0">
                           <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
                         </div>
                       )}
-                      <span className="text-3xl">{cat.icon}</span>
-                      <span className={`font-semibold ${isSelected ? "text-pink-700" : "text-gray-700"}`}>{cat.label}</span>
+                      <span className="text-2xl flex-shrink-0">{cat.icon}</span>
+                      <span className={`font-semibold text-sm leading-tight break-words min-w-0 ${isSelected ? "text-pink-700" : "text-gray-700"}`}>{cat.label}</span>
                     </button>
                   );
                 })}

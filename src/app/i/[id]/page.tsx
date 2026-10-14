@@ -351,7 +351,7 @@ export default function InvitePage() {
           <div className="w-full mb-4">
             <AudioPlayer
               src={inviteData.voice_url}
-              label="🎤 Голосовое послание от создателя"
+              label={inviteData?.voice_label || "🎤 Голосовое послание от создателя"}
             />
           </div>
         )}
@@ -361,7 +361,10 @@ export default function InvitePage() {
           <span className="block text-xl font-semibold text-gray-700 leading-relaxed">{inviteData?.custom_text || "Ты пойдешь со мной на свидание?"}</span>
         </h1>
         <div className="flex flex-col gap-4 w-full relative">
-          <button onClick={() => setStep(2)} className="w-full bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white font-bold py-4 px-6 rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl text-lg">
+          <button
+            onClick={() => setStep(2)}
+            className="w-full bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white font-bold py-4 px-6 rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl text-base sm:text-lg break-words whitespace-normal leading-tight"
+          >
             {inviteData?.button_yes_text || "Да"}
           </button>
           {showKiss && (
@@ -379,7 +382,7 @@ export default function InvitePage() {
               opacity: isNoButtonHidden ? 0 : (noButtonScale < 0.3 ? 0.3 : 1),
               pointerEvents: isNoButtonHidden ? "none" : "auto",
             }}
-            className="w-full bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold py-4 px-6 rounded-full shadow-md text-lg"
+            className="w-full bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold py-4 px-6 rounded-full shadow-md text-base sm:text-lg break-words whitespace-normal leading-tight"
           >
             {inviteData?.button_no_text || "Нет"}
           </button>
